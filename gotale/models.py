@@ -19,6 +19,9 @@ class Location(models.Model):
         validators=[MinValueValidator(-180.0), MaxValueValidator(180.0)],
     )
 
+    def __str__(self):
+        return self.name
+
     class Meta:
         unique_together = [("latitude", "longitude")]
 
@@ -121,6 +124,9 @@ class Game(models.Model):
     def total_playtime(self):
         return sum((s.duration for s in self.sessions.all()), timezone.timedelta())
 
+    def __str__(self):
+        return f"{self.scenario.name} played by {self.user.username}"
+
 
 class Session(models.Model):
     game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name="sessions")
@@ -131,6 +137,9 @@ class Session(models.Model):
     @property
     def duration(self):
         return (self.end or timezone.now()) - self.start
+
+    def __str__(self):
+        return f"session for {self.game.id} ({self.is_active})"
 
 
 class History(models.Model):
@@ -146,6 +155,9 @@ class History(models.Model):
         help_text="Snapshot of the step at decision time.",
     )
     timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"History for {self.session}"
 
     class Meta:
         ordering = ["-timestamp"]
