@@ -19,7 +19,9 @@ class Scenario(models.Model):
     name = models.CharField(max_length=100, unique=True)
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="scenarios")
     # Only few Steps are marked as root
-    root_step = models.ForeignKey("Step", on_delete=models.CASCADE, related_name='as_root_for_scenario')
+    root_step = models.ForeignKey(
+        "Step", on_delete=models.CASCADE, related_name="as_root_for_scenario"
+    )
 
     # TODO: In Future MULTIPLAYER
     # limit_players = models.PositiveIntegerField(
