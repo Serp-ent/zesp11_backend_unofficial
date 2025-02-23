@@ -13,6 +13,8 @@ from gotale.models import Location, Scenario, Step, Game
 
 # Create your views here.
 class UserViewset(viewsets.ModelViewSet):
+    # TODO: user should be able to update only own profile
+    # TODO: me/ action for current user
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
@@ -36,5 +38,7 @@ class StepsViewset(viewsets.ModelViewSet):
 
 
 class GameViewsets(viewsets.ModelViewSet):
+    # TODO: GET /step action for current game /api/game/:id/step
+    # TODO: POST /step action for current game decision
     queryset = Game.objects.all()
     serializer_class = GameSerializer
