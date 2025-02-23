@@ -67,6 +67,13 @@ class GameViewsets(viewsets.ModelViewSet):
     queryset = Game.objects.all()
     serializer_class = GameSerializer
 
+    def perform_create(self, serializer):
+        """Auto-create first session on game creation"""
+        game = super().perform_create(serializer)
+        Session.objects.create(game=game, is_active=True)
+
+        return game
+
     @action(
         detail=True,
         methods=["GET", "POST"],
@@ -89,6 +96,10 @@ class GameViewsets(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        active_session = game.session.filter(is_active=True).first()
+        if not active_session:
+            active_session = Session.objects.create(game=game, is_active=True)
+
         serializer = MakeChoiceSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         choice_id = serializer.validated_data["choice_id"]
@@ -99,14 +110,6 @@ class GameViewsets(viewsets.ModelViewSet):
             return Response(
                 {"errors": "Invalid choice ID for current step"},
                 status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        # Get active session
-        try:
-            session = game.sessions.filter(is_active=True).get()
-        except Session.DoesNotExist:
-            return Response(
-                {"error": "No active session found"}, status=status.HTTP_400_BAD_REQUEST
             )
 
         # Update game state
@@ -120,7 +123,7 @@ class GameViewsets(viewsets.ModelViewSet):
 
         # Record history
         History.objects.create(
-            session=session,
+            session=active_session,
             choice=choice,
             step=original_step,
         )
@@ -129,3 +132,22 @@ class GameViewsets(viewsets.ModelViewSet):
             StepSerializer(game.current_step).data,
             status=status.HTTP_200_OK,
         )
+
+    @action(
+        detail=True,
+        methods=["POST"],
+        url_path='end-session',
+        url_name='session-end',
+        name='End session for current game',
+    )
+    def end_session(self, request, pk=None):
+        """Frontend needs to call this when leaving"""
+        game = self.get_object()
+        session = game.sessions.filter(is_active=True).first()
+
+        if session:
+            session.is_active = False
+            session.end = timezone.now()
+            session.save()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
