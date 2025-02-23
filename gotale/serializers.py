@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from gotale.models import Location, Scenario
+from gotale.models import Location, Scenario, Step
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -19,4 +19,11 @@ class ScenarioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Scenario
         fields = "__all__"
+        depth = 1
+
+
+class StepSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Step
+        fields = ['id', 'title', 'text', 'location', 'choices']
         depth = 1

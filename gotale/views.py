@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from django.contrib.auth.models import User
-from gotale.serializers import UserSerializer, LocationSerializer, ScenarioSerializer
+from gotale.serializers import UserSerializer, LocationSerializer, ScenarioSerializer, StepSerializer
 from rest_framework import viewsets
-from gotale.models import Location, Scenario
+from gotale.models import Location, Scenario, Step
 
 
 # Create your views here.
@@ -21,3 +21,7 @@ class ScenarioViewset(viewsets.ModelViewSet):
     # TODO: only owner/admin can update/destroy scenario
     queryset = Scenario.objects.all()
     serializer_class = ScenarioSerializer
+
+class StepsViewset(viewsets.ModelViewSet):
+    queryset = Step.objects.all()
+    serializer_class = StepSerializer
