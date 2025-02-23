@@ -8,8 +8,16 @@ from datetime import timezone
 # Create your models here.
 class Location(models.Model):
     name = models.CharField(max_length=100)
-    latitude = models.DecimalField(max_digits=9, decimal_places=6)
-    longitude = models.DecimalField(max_digits=9, decimal_places=6)
+    latitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        validators=[MinValueValidator(-90.0), MaxValueValidator(90.0)],
+    )
+    longitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        validators=[MinValueValidator(-180.0), MaxValueValidator(180.0)],
+    )
 
     class Meta:
         unique_together = [("latitude", "longitude")]
