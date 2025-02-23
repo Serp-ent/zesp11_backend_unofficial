@@ -1,5 +1,8 @@
 from django.shortcuts import render
 from django.contrib.auth.models import User
+from rest_framework.response import Response
+from rest_framework import permissions
+from rest_framework.request import Request
 from gotale.serializers import (
     UserSerializer,
     LocationSerializer,
@@ -9,14 +12,35 @@ from gotale.serializers import (
 )
 from rest_framework import viewsets
 from gotale.models import Location, Scenario, Step, Game
+from rest_framework.decorators import action
 
 
 # Create your views here.
 class UserViewset(viewsets.ModelViewSet):
     # TODO: user should be able to update only own profile
-    # TODO: me/ action for current user
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+    @action(
+        detail=False,
+        methods=["GET", "PUT", "PATCH"],
+        permission_classes=[permissions.IsAuthenticated],
+        url_name="current",
+        url_path="me",
+        name="Current User",
+    )
+    def current_user(self, request: Request) -> Response:
+        user = request.user
+        if request.method == "GET":
+            serializer = self.get_serializer(user)
+            return Response(serializer.data)
+
+        serializer = self.get_serializer(request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response(user)
+
+        return Response(serializer.errors)
 
 
 class LocationViewset(viewsets.ModelViewSet):
