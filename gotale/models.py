@@ -30,8 +30,9 @@ class Scenario(models.Model):
     name = models.CharField(max_length=100, unique=True)
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="scenarios")
     # Only few Steps are marked as root
+    # TODO: rethink creation, because this should be non-nullable
     root_step = models.ForeignKey(
-        "Step", on_delete=models.CASCADE, related_name="as_root_for_scenario"
+        "Step", on_delete=models.CASCADE, related_name="as_root_for_scenario", null=True
     )
 
     # TODO: In Future MULTIPLAYER
@@ -40,10 +41,10 @@ class Scenario(models.Model):
     # )
 
     def save(self, *args, **kwargs):
-        if not self.root_step:
-            raise ValidationError("Scenario requires a root step.")
-        if self.root_step.scenario != self:
-            raise ValidationError("Root step must belong to this scenario.")
+        # if not self.root_step:
+        #     raise ValidationError("Scenario requires a root step.")
+        # if self.root_step.scenario != self:
+        #     raise ValidationError("Root step must belong to this scenario.")
 
         return super().save(*args, **kwargs)
 
