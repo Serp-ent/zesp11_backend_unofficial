@@ -1,7 +1,9 @@
 from django.shortcuts import render
 from django.contrib.auth.models import User
+from rest_framework import generics
 from rest_framework.response import Response
 from datetime import timezone
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
 from rest_framework import permissions
 from django.shortcuts import get_object_or_404
@@ -151,3 +153,19 @@ class GameViewsets(viewsets.ModelViewSet):
             session.save()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class RegisterView(generics.CreateAPIView):
+    serializer_class = UserSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save
+
+        # Generate tokens for immediate login
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+        }, status=status.HTTP_201_CREATED)
