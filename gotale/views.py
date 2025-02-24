@@ -60,10 +60,14 @@ class LocationViewset(viewsets.ModelViewSet):
 
 
 class ScenarioViewset(viewsets.ModelViewSet):
-    # TODO: everyone can create scenarios
-    # TODO: only owner/admin can update/destroy scenario
     queryset = Scenario.objects.all()
     serializer_class = ScenarioSerializer
+
+    def get_permissions(self):
+        if self.action == "create":
+            return [permissions.IsAuthenticated()]
+
+        return [gotalePermissions.IsOwnerOrAdminOrReadOnly()]
 
 
 class GameViewsets(viewsets.ModelViewSet):
