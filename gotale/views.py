@@ -66,12 +66,10 @@ class ScenarioViewset(viewsets.ModelViewSet):
     serializer_class = ScenarioSerializer
 
 
-class StepsViewset(viewsets.ModelViewSet):
-    queryset = Step.objects.all()
-    serializer_class = StepSerializer
-
-
 class GameViewsets(viewsets.ModelViewSet):
+    # TODO: everyone can create games
+    # TODO: only admin can delete games
+    # TODO: only users inside game can retrieve step and do step
     queryset = Game.objects.all()
     serializer_class = GameSerializer
 
