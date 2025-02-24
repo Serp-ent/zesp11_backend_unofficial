@@ -4,6 +4,8 @@ from rest_framework import status
 from gotale.models import Location, Scenario
 
 
+# TODO: group tests by viewset
+
 @pytest.mark.django_db
 def test_anon_can_list_user_profiles(anon_client, user1, user2):
     url = reverse("user-list")

@@ -49,3 +49,39 @@ class IsAdminOrReadOnly(permissions.BasePermission):
             return True
 
         return True
+
+
+class isAuthenticatedOrAdmin(permissions.BasePermission):
+    """Allow everyone to read, let authenticated users create, and admins do everything."""
+
+    def has_permission(self, request, view):
+        # Admin bypass: staff users can perform any action.
+        if request.user.is_staff:
+            return True
+
+        # Everyone can read.
+        if view.action in permissions.SAFE_METHODS:
+            return True
+
+        # Only authenticated users can create games.
+        if view.action == "create":
+            return request.user.is_authenticated
+
+        # Only admins can destroy (handled by admin bypass above).
+        if view.action == "destroy":
+            return False
+
+        # Default to allowing the action.
+        return True
+
+
+class IsInGame(permissions.BasePermission):
+    """Allow only users with an active session in the game (or admins)."""
+
+    def has_object_permission(self, request, view, obj):
+        # Admin bypass: allow admins.
+        if request.user.is_staff:
+            return True
+
+        # Check if the user has an active session in this game.
+        return obj.sessions.filter(game__user=request.user, is_active=True).exists()

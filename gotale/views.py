@@ -71,11 +71,15 @@ class ScenarioViewset(viewsets.ModelViewSet):
 
 
 class GameViewsets(viewsets.ModelViewSet):
-    # TODO: everyone can create games
-    # TODO: only admin can delete games
-    # TODO: only users inside game can retrieve step and do step
     queryset = Game.objects.all()
     serializer_class = GameSerializer
+    permission_classes = [gotalePermissions.isAuthenticatedOrAdmin]
+
+    def get_permissions(self):
+        if self.action in ['current_step', 'end_session']:
+            return [gotalePermissions.isInGame()]
+
+        return super().get_permissions()
 
     def perform_create(self, serializer):
         """Auto-create first session on game creation"""
