@@ -3,7 +3,6 @@ from gotale.views import (
     UserViewset,
     LocationViewset,
     ScenarioViewset,
-    StepsViewset,
     GameViewsets,
     RegisterView,
 )
@@ -15,12 +14,6 @@ router.register("users", UserViewset, basename="user")
 router.register("locations", LocationViewset, basename="location")
 router.register("scenarios", ScenarioViewset, basename="scenario")
 router.register("games", GameViewsets, basename="game")
-
-# TODO: /api/auth/register
-# TODO: /api/auth/login
-# TODO: /api/auth/logout
-# TODO: /api/auth/refresh
-
 
 urlpatterns = [
     path("auth/register/", RegisterView.as_view(), name="register"),

@@ -6,6 +6,7 @@ from datetime import timezone
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
 from rest_framework import permissions
+from gotale import permissions as gotalePermissions
 from django.shortcuts import get_object_or_404
 from rest_framework.request import Request
 from gotale.serializers import (
@@ -23,9 +24,9 @@ from rest_framework.decorators import action
 
 # Create your views here.
 class UserViewset(viewsets.ModelViewSet):
-    # TODO: user should be able to update only own profile
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    permission_classes = [gotalePermissions.UserPermission]
 
     @action(
         detail=False,
@@ -41,10 +42,15 @@ class UserViewset(viewsets.ModelViewSet):
             serializer = self.get_serializer(user)
             return Response(serializer.data)
 
-        serializer = self.get_serializer(data=request.data)
+        partial = request.method == "PATCH"
+        serializer = self.get_serializer(
+            user,
+            data=request.data,
+            partial=partial,
+        )
         serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        return Response(user)
+        serializer.save()
+        return Response(serializer.data)
 
 
 class LocationViewset(viewsets.ModelViewSet):
@@ -138,9 +144,9 @@ class GameViewsets(viewsets.ModelViewSet):
     @action(
         detail=True,
         methods=["POST"],
-        url_path='end-session',
-        url_name='session-end',
-        name='End session for current game',
+        url_path="end-session",
+        url_name="session-end",
+        name="End session for current game",
     )
     def end_session(self, request, pk=None):
         """Frontend needs to call this when leaving"""
@@ -165,7 +171,10 @@ class RegisterView(generics.CreateAPIView):
 
         # Generate tokens for immediate login
         refresh = RefreshToken.for_user(user)
-        return Response({
-            'refresh': str(refresh),
-            'access': str(refresh.access_token),
-        }, status=status.HTTP_201_CREATED)
+        return Response(
+            {
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+            },
+            status=status.HTTP_201_CREATED,
+        )

@@ -6,7 +6,7 @@ from gotale.models import Location, Scenario, Step, Game
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "first_name", "last_name", "date_joined"]
+        fields = ["id", "username", "email", "first_name", "last_name", "date_joined"]
 
 
 class LocationSerializer(serializers.ModelSerializer):
@@ -31,6 +31,7 @@ class StepSerializer(serializers.ModelSerializer):
 
 class GameSerializer(serializers.ModelSerializer):
     current_step = StepSerializer()
+
     class Meta:
         model = Game
         fields = "__all__"
