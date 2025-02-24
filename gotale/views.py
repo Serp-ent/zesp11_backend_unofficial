@@ -54,7 +54,7 @@ class UserViewset(viewsets.ModelViewSet):
 
 
 class LocationViewset(viewsets.ModelViewSet):
-    # TODO: only admin should be able to create/update/destroy locations
+    permission_classes = [gotalePermissions.IsAdminOrReadOnly]
     queryset = Location.objects.all()
     serializer_class = LocationSerializer
 

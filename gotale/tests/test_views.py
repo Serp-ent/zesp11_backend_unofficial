@@ -1,5 +1,7 @@
 import pytest
 from django.urls import reverse
+from rest_framework import status
+from gotale.models import Location
 
 
 @pytest.mark.django_db
@@ -87,3 +89,122 @@ def test_user_can_patch_own_profile(auth_client1, user1):
     assert response.status_code == 200
     user1.refresh_from_db()
     assert user1.email == "patched@example.com"
+
+
+# Tests for list and create actions
+# --------------------------------
+
+@pytest.mark.django_db
+def test_anon_can_list_locations(anon_client):
+    # Create a test location
+    Location.objects.create(name="Test Location", latitude=0.0, longitude=0.0)
+    url = reverse("location-list")
+    response = anon_client.get(url)
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data) > 0  # Ensure data is returned
+
+
+@pytest.mark.django_db
+def test_anon_cannot_create_location(anon_client):
+    url = reverse("location-list")
+    data = {
+        "name": "New Location",
+        "latitude": 0.0,
+        "longitude": 0.0
+    }
+    response = anon_client.post(url, data)
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+def test_auth_nonadmin_cannot_create_location(auth_client1):
+    url = reverse("location-list")
+    data = {
+        "name": "New Location",
+        "latitude": 0.0,
+        "longitude": 0.0
+    }
+    response = auth_client1.post(url, data)
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+def test_admin_can_create_location(admin_client):
+    url = reverse("location-list")
+    data = {
+        "name": "New Location",
+        "latitude": 0.0,
+        "longitude": 0.0
+    }
+    response = admin_client.post(url, data)
+    assert response.status_code == status.HTTP_201_CREATED
+    assert Location.objects.filter(name="New Location").exists()
+
+
+# Tests for detail (retrieve/update/delete) actions
+# -------------------------------------------------
+
+@pytest.mark.django_db
+def test_anon_can_retrieve_location(anon_client):
+    location = Location.objects.create(
+        name="Test Location", 
+        latitude=0.0, 
+        longitude=0.0
+    )
+    url = reverse("location-detail", kwargs={"pk": location.pk})
+    response = anon_client.get(url)
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["name"] == "Test Location"
+
+
+@pytest.mark.django_db
+def test_auth_nonadmin_cannot_update_location(auth_client1):
+    location = Location.objects.create(
+        name="Test Location", 
+        latitude=0.0, 
+        longitude=0.0
+    )
+    url = reverse("location-detail", kwargs={"pk": location.pk})
+    data = {"name": "Updated Name"}
+    response = auth_client1.patch(url, data)
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+def test_admin_can_update_location(admin_client):
+    location = Location.objects.create(
+        name="Test Location", 
+        latitude=0.0, 
+        longitude=0.0
+    )
+    url = reverse("location-detail", kwargs={"pk": location.pk})
+    data = {"name": "Updated Name"}
+    response = admin_client.patch(url, data)
+    assert response.status_code == status.HTTP_200_OK
+    location.refresh_from_db()
+    assert location.name == "Updated Name"
+
+
+@pytest.mark.django_db
+def test_admin_can_delete_location(admin_client):
+    location = Location.objects.create(
+        name="Test Location", 
+        latitude=0.0, 
+        longitude=0.0
+    )
+    url = reverse("location-detail", kwargs={"pk": location.pk})
+    response = admin_client.delete(url)
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+    assert not Location.objects.filter(pk=location.pk).exists()
+
+
+@pytest.mark.django_db
+def test_auth_nonadmin_cannot_delete_location(auth_client1):
+    location = Location.objects.create(
+        name="Test Location", 
+        latitude=0.0, 
+        longitude=0.0
+    )
+    url = reverse("location-detail", kwargs={"pk": location.pk})
+    response = auth_client1.delete(url)
+    assert response.status_code == status.HTTP_403_FORBIDDEN
