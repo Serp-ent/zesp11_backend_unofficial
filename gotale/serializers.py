@@ -30,11 +30,17 @@ class StepSerializer(serializers.ModelSerializer):
 
 
 class GameSerializer(serializers.ModelSerializer):
-    current_step = StepSerializer()
+    current_step = StepSerializer(read_only=True)
 
     class Meta:
         model = Game
         fields = "__all__"
+
+# class GameWriteSerializer(serializers.ModelSerializer):
+#     current_step = StepSerializer(write)
+#     class Meat:
+#         model = Game
+#         fields = "-all"
 
 
 class MakeChoiceSerializer(serializers.Serializer):

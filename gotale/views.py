@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.contrib.auth.models import User
 from rest_framework import generics
 from rest_framework.response import Response
-from datetime import timezone
+from datetime import timezone, datetime
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
 from rest_framework import permissions
@@ -77,13 +77,14 @@ class GameViewsets(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action in ['current_step', 'end_session']:
-            return [gotalePermissions.isInGame()]
+            return [gotalePermissions.IsInGame()]
 
         return super().get_permissions()
 
     def perform_create(self, serializer):
         """Auto-create first session on game creation"""
-        game = super().perform_create(serializer)
+        game = serializer.save(user=self.request.user)
+
         Session.objects.create(game=game, is_active=True)
 
         return game
@@ -110,7 +111,7 @@ class GameViewsets(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        active_session = game.session.filter(is_active=True).first()
+        active_session = game.sessions.filter(is_active=True).first()
         if not active_session:
             active_session = Session.objects.create(game=game, is_active=True)
 
@@ -131,7 +132,7 @@ class GameViewsets(viewsets.ModelViewSet):
         game.current_step = choice.next
 
         if game.current_step.is_last_step():
-            game.end = timezone.now()
+            game.end = datetime.now()
 
         game.save()
 
@@ -161,7 +162,7 @@ class GameViewsets(viewsets.ModelViewSet):
 
         if session:
             session.is_active = False
-            session.end = timezone.now()
+            session.end = datetime.now()
             session.save()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
