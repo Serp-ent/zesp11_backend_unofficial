@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from gotale.models import Location, Scenario, Step, Game
+
+from gotale.models import Game, Location, Scenario, Step
 
 
 class UserSerializer(serializers.ModelSerializer):

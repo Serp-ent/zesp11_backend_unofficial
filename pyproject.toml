@@ -1,0 +1,18 @@
+[tool.ruff.lint]
+select = [
+  "E",  # pycodestyle errors
+  "F",  # pyflakes
+  "W",  # pycodestyle warnings
+  "UP", # pyupgrade (modernize code)
+  "I",  # isort (import sorting)
+]
+ignore = ["E501"] # Example: ignore line-length errors
+
+exclude = [
+  "migrations/",  # Django migrations
+  ".venv/",
+  "__pycache__/",
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["backend"] # Replace with your Django project name

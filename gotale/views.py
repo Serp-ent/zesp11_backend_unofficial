@@ -1,25 +1,22 @@
-from django.shortcuts import render
+from datetime import datetime
+
 from django.contrib.auth.models import User
-from rest_framework import generics
-from rest_framework.response import Response
-from datetime import timezone, datetime
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import status
-from rest_framework import permissions
-from gotale import permissions as gotalePermissions
-from django.shortcuts import get_object_or_404
+from rest_framework import generics, permissions, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.request import Request
+from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
+
+from gotale import permissions as gotalePermissions
+from gotale.models import Choice, Game, History, Location, Scenario, Session
 from gotale.serializers import (
-    UserSerializer,
+    GameSerializer,
     LocationSerializer,
+    MakeChoiceSerializer,
     ScenarioSerializer,
     StepSerializer,
-    GameSerializer,
-    MakeChoiceSerializer,
+    UserSerializer,
 )
-from rest_framework import viewsets
-from gotale.models import Location, Scenario, Step, Game, History, Choice, Session
-from rest_framework.decorators import action
 
 
 # Create your views here.

@@ -1,13 +1,9 @@
 import pytest
 from django.urls import reverse
-from rest_framework import status
-from gotale.models import Location, Scenario, Game, Step, Choice, Session, History
-from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
-from rest_framework.test import APITestCase
-from django.contrib.auth.models import User
 
+from gotale.models import Game, History, Location, Scenario
 
 # TODO: group tests by viewset
 

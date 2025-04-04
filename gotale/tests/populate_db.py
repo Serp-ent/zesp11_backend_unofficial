@@ -1,11 +1,10 @@
 """This script is for manual testing"""
 
 import random
-from django.utils import timezone
-from django.core.exceptions import ValidationError
-from django.contrib.auth.models import User
-from gotale.models import Location, Scenario, Step, Choice, Game, Session, History
 
+from django.contrib.auth.models import User
+
+from gotale.models import Choice, Game, History, Location, Scenario, Session, Step
 
 # Create Superuser for Testing (if not exists)
 user, created = User.objects.get_or_create(

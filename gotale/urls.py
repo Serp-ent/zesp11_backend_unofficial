@@ -1,13 +1,14 @@
+from django.urls import path
 from rest_framework import routers
-from gotale.views import (
-    UserViewset,
-    LocationViewset,
-    ScenarioViewset,
-    GameViewsets,
-    RegisterView,
-)
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from django.urls import path, include
+
+from gotale.views import (
+    GameViewsets,
+    LocationViewset,
+    RegisterView,
+    ScenarioViewset,
+    UserViewset,
+)
 
 router = routers.DefaultRouter()
 router.register("users", UserViewset, basename="user")
