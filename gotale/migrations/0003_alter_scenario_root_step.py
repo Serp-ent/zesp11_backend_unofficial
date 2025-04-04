@@ -7,13 +7,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('gotale', '0002_alter_location_latitude_alter_location_longitude'),
+        ("gotale", "0002_alter_location_latitude_alter_location_longitude"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='scenario',
-            name='root_step',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='as_root_for_scenario', to='gotale.step'),
+            model_name="scenario",
+            name="root_step",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="as_root_for_scenario",
+                to="gotale.step",
+            ),
         ),
     ]

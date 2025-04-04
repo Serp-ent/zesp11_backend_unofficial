@@ -291,18 +291,21 @@ def test_auth_nonowner_cannot_delete_scenario(auth_client1, user2):
     response = auth_client1.delete(url)
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
+
 # -------------------------------------------------------------
+
 
 @pytest.mark.django_db
 def test_read_games_anonymous(anon_client, create_game):
     list_url = reverse("game-list")
     detail_url = reverse("game-detail", args=[create_game.id])
-    
+
     response = anon_client.get(list_url)
     assert response.status_code == status.HTTP_200_OK
 
     response = anon_client.get(detail_url)
     assert response.status_code == status.HTTP_200_OK
+
 
 @pytest.mark.django_db
 def test_create_game_authenticated(auth_client1, scenario_setup, user1):
@@ -355,7 +358,7 @@ def test_current_step_get_not_in_game_user(auth_client2, create_game):
 def test_current_step_post_valid_choice(auth_client1, create_game, scenario_setup):
     url = reverse("game-current-step", args=[create_game.id])
     data = {"choice_id": scenario_setup["choice"].id}
-    
+
     response = auth_client1.post(url, data, format="json")
     assert response.status_code == status.HTTP_200_OK
 
@@ -427,4 +430,3 @@ def test_destroy_game_non_admin(auth_client1, create_game):
     assert response.status_code == status.HTTP_403_FORBIDDEN
     # The game should still exist.
     assert Game.objects.filter(pk=create_game.id).exists()
-

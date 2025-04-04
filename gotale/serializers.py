@@ -36,6 +36,7 @@ class GameSerializer(serializers.ModelSerializer):
         model = Game
         fields = "__all__"
 
+
 # class GameWriteSerializer(serializers.ModelSerializer):
 #     current_step = StepSerializer(write)
 #     class Meat:

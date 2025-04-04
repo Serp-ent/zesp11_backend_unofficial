@@ -76,7 +76,7 @@ class GameViewsets(viewsets.ModelViewSet):
     permission_classes = [gotalePermissions.isAuthenticatedOrAdmin]
 
     def get_permissions(self):
-        if self.action in ['current_step', 'end_session']:
+        if self.action in ["current_step", "end_session"]:
             return [gotalePermissions.IsInGame()]
 
         return super().get_permissions()

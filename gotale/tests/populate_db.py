@@ -1,4 +1,4 @@
-""" This script is for manual testing """
+"""This script is for manual testing"""
 
 import random
 from django.utils import timezone
@@ -25,7 +25,9 @@ location_objs = [Location.objects.get_or_create(**loc)[0] for loc in locations]
 print("✅ Locations added.")
 
 # Create Scenario
-scenario = Scenario.objects.create(name="Adventure Quest", author=user, root_step_id=None)
+scenario = Scenario.objects.create(
+    name="Adventure Quest", author=user, root_step_id=None
+)
 print(f"✅ Scenario '{scenario.name}' created.")
 
 # Create Steps

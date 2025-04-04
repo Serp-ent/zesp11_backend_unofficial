@@ -1,5 +1,5 @@
 import pytest
-from django.contrib.auth.models import User 
+from django.contrib.auth.models import User
 from gotale.models import Location, Session, Game, Choice, Step, Scenario
 from rest_framework.test import APIClient
 
@@ -56,15 +56,22 @@ def auth_client2(user2):
     client.force_authenticate(user=user2)
     return client
 
+
 @pytest.fixture
 def scenario_setup(db, user1):
     # Create a location
-    location = Location.objects.create(name="Test Location", latitude=10.0, longitude=20.0)
+    location = Location.objects.create(
+        name="Test Location", latitude=10.0, longitude=20.0
+    )
 
     # Create a scenario authored by user1
     scenario = Scenario.objects.create(name="Test Scenario", author=user1)
-    step1 = Step.objects.create(title="Step 1", text="First step", scenario=scenario, location=location)
-    step2 = Step.objects.create(title="Step 2", text="Second step", scenario=scenario, location=location)
+    step1 = Step.objects.create(
+        title="Step 1", text="First step", scenario=scenario, location=location
+    )
+    step2 = Step.objects.create(
+        title="Step 2", text="Second step", scenario=scenario, location=location
+    )
 
     # Set the root step if needed
     scenario.root_step = step1
@@ -72,7 +79,7 @@ def scenario_setup(db, user1):
 
     # Create a choice from step1 to step2
     choice = Choice.objects.create(step=step1, text="Advance to step 2", next=step2)
-    
+
     return {
         "scenario": scenario,
         "step1": step1,
