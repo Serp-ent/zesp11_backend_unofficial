@@ -4,11 +4,13 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django_extensions.db.models import (
+    TimeStampedModel,
+    TitleDescriptionModel,
+)
 
 
-# Create your models here.
-class Location(models.Model):
-    name = models.CharField(max_length=100)
+class Location(TitleDescriptionModel):
     latitude = models.DecimalField(
         max_digits=9,
         decimal_places=6,
@@ -27,8 +29,7 @@ class Location(models.Model):
         unique_together = [("latitude", "longitude")]
 
 
-class Scenario(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+class Scenario(TitleDescriptionModel, TimeStampedModel):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="scenarios")
     # Only few Steps are marked as root
     # TODO: rethink creation, because this should be non-nullable
@@ -53,9 +54,7 @@ class Scenario(models.Model):
         return self.name
 
 
-class Step(models.Model):
-    title = models.CharField(max_length=100)
-    text = models.TextField()
+class Step(TitleDescriptionModel):
     scenario = models.ForeignKey(
         Scenario, on_delete=models.CASCADE, related_name="steps"
     )
@@ -77,7 +76,7 @@ class Step(models.Model):
         return self.choices.count() == 0
 
     def __str__(self):
-        return f"{self.scenario.name} - {self.title}"
+        return f"{self.scenario.title} - {self.title}"
 
 
 class Choice(models.Model):
@@ -106,14 +105,13 @@ class Choice(models.Model):
     #     ]
 
 
-class Game(models.Model):
+class Game(TimeStampedModel):
     # TODO: Multiplayer with M2M field for Game
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="games")
     scenario = models.ForeignKey(Scenario, on_delete=models.CASCADE)
     current_step = models.ForeignKey(
         Step, on_delete=models.SET_NULL, null=True, related_name="active_games"
     )
-    start = models.DateTimeField(auto_now_add=True)
     end = models.DateTimeField(null=True)
 
     @property
@@ -144,7 +142,7 @@ class Session(models.Model):
         return f"session for {self.game.id} ({self.is_active})"
 
 
-class History(models.Model):
+class History(TimeStampedModel):
     session = models.ForeignKey(
         "Session", on_delete=models.CASCADE, related_name="decisions"
     )
@@ -156,10 +154,9 @@ class History(models.Model):
         blank=True,
         help_text="Snapshot of the step at decision time.",
     )
-    timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"History for {self.session}"
 
     class Meta:
-        ordering = ["-timestamp"]
+        ordering = ["-created"]

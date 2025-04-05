@@ -5,9 +5,8 @@ from rest_framework import status
 
 from backend.gotale.models import Game, History, Location, Scenario
 
+
 # TODO: group tests by viewset
-
-
 @pytest.mark.django_db
 def test_anon_can_list_user_profiles(anon_client, user1, user2):
     url = reverse("user-list")
@@ -102,7 +101,7 @@ def test_user_can_patch_own_profile(auth_client1, user1):
 @pytest.mark.django_db
 def test_anon_can_list_locations(anon_client):
     # Create a test location
-    Location.objects.create(name="Test Location", latitude=0.0, longitude=0.0)
+    Location.objects.create(title="Test Location", latitude=0.0, longitude=0.0)
     url = reverse("location-list")
     response = anon_client.get(url)
     assert response.status_code == status.HTTP_200_OK
@@ -112,9 +111,9 @@ def test_anon_can_list_locations(anon_client):
 @pytest.mark.django_db
 def test_anon_cannot_create_location(anon_client):
     url = reverse("location-list")
-    data = {"name": "New Location", "latitude": 0.0, "longitude": 0.0}
+    data = {"title": "New Location", "latitude": 0.0, "longitude": 0.0}
     response = anon_client.post(url, data)
-    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
 @pytest.mark.django_db
@@ -128,10 +127,10 @@ def test_auth_nonadmin_cannot_create_location(auth_client1):
 @pytest.mark.django_db
 def test_admin_can_create_location(admin_client):
     url = reverse("location-list")
-    data = {"name": "New Location", "latitude": 0.0, "longitude": 0.0}
+    data = {"title": "New Location", "latitude": 0.0, "longitude": 0.0}
     response = admin_client.post(url, data)
     assert response.status_code == status.HTTP_201_CREATED
-    assert Location.objects.filter(name="New Location").exists()
+    assert Location.objects.filter(title="New Location").exists()
 
 
 # Tests for detail (retrieve/update/delete) actions
@@ -141,21 +140,21 @@ def test_admin_can_create_location(admin_client):
 @pytest.mark.django_db
 def test_anon_can_retrieve_location(anon_client):
     location = Location.objects.create(
-        name="Test Location", latitude=0.0, longitude=0.0
+        title="Test Location", latitude=0.0, longitude=0.0
     )
     url = reverse("location-detail", kwargs={"pk": location.pk})
     response = anon_client.get(url)
     assert response.status_code == status.HTTP_200_OK
-    assert response.data["name"] == "Test Location"
+    assert response.data["title"] == "Test Location"
 
 
 @pytest.mark.django_db
 def test_auth_nonadmin_cannot_update_location(auth_client1):
     location = Location.objects.create(
-        name="Test Location", latitude=0.0, longitude=0.0
+        title="Test Location", latitude=0.0, longitude=0.0
     )
     url = reverse("location-detail", kwargs={"pk": location.pk})
-    data = {"name": "Updated Name"}
+    data = {"title": "Updated Name"}
     response = auth_client1.patch(url, data)
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
@@ -163,20 +162,20 @@ def test_auth_nonadmin_cannot_update_location(auth_client1):
 @pytest.mark.django_db
 def test_admin_can_update_location(admin_client):
     location = Location.objects.create(
-        name="Test Location", latitude=0.0, longitude=0.0
+        title="Test Location", latitude=0.0, longitude=0.0
     )
     url = reverse("location-detail", kwargs={"pk": location.pk})
-    data = {"name": "Updated Name"}
+    data = {"title": "Updated Name"}
     response = admin_client.patch(url, data)
     assert response.status_code == status.HTTP_200_OK
     location.refresh_from_db()
-    assert location.name == "Updated Name"
+    assert location.title == "Updated Name"
 
 
 @pytest.mark.django_db
 def test_admin_can_delete_location(admin_client):
     location = Location.objects.create(
-        name="Test Location", latitude=0.0, longitude=0.0
+        title="Test Location", latitude=0.0, longitude=0.0
     )
     url = reverse("location-detail", kwargs={"pk": location.pk})
     response = admin_client.delete(url)
@@ -187,7 +186,7 @@ def test_admin_can_delete_location(admin_client):
 @pytest.mark.django_db
 def test_auth_nonadmin_cannot_delete_location(auth_client1):
     location = Location.objects.create(
-        name="Test Location", latitude=0.0, longitude=0.0
+        title="Test Location", latitude=0.0, longitude=0.0
     )
     url = reverse("location-detail", kwargs={"pk": location.pk})
     response = auth_client1.delete(url)
@@ -200,7 +199,7 @@ def test_auth_nonadmin_cannot_delete_location(auth_client1):
 
 @pytest.mark.django_db
 def test_anon_can_list_scenarios(anon_client, user1):
-    Scenario.objects.create(name="Test Scenario", author=user1)
+    Scenario.objects.create(title="Test Scenario", author=user1)
     url = reverse("scenario-list")
     response = anon_client.get(url)
     assert response.status_code == status.HTTP_200_OK
@@ -210,11 +209,11 @@ def test_anon_can_list_scenarios(anon_client, user1):
 @pytest.mark.django_db
 def test_anon_cannot_create_scenario(anon_client):
     url = reverse("scenario-list")
-    data = {"name": "New Scenario"}
+    data = {"title": "New Scenario"}
 
     response = anon_client.post(url, data)
-    assert response.status_code == status.HTTP_401_UNAUTHORIZED
-    assert not Scenario.objects.filter(name="New Scenario").exists()
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert not Scenario.objects.filter(title="New Scenario").exists()
 
 
 # Tests for detail (retrieve/update/delete) actions
@@ -223,48 +222,48 @@ def test_anon_cannot_create_scenario(anon_client):
 
 @pytest.mark.django_db
 def test_anon_can_retrieve_scenario(anon_client, user1):
-    scenario = Scenario.objects.create(name="Test Scenario", author=user1)
+    scenario = Scenario.objects.create(title="Test Scenario", author=user1)
     url = reverse("scenario-detail", kwargs={"pk": scenario.pk})
     response = anon_client.get(url)
     assert response.status_code == status.HTTP_200_OK
-    assert response.data["name"] == "Test Scenario"
+    assert response.data["title"] == "Test Scenario"
 
 
 @pytest.mark.django_db
 def test_auth_nonowner_cannot_update_scenario(auth_client1, user2):
-    scenario = Scenario.objects.create(name="Test Scenario", author=user2)
+    scenario = Scenario.objects.create(title="Test Scenario", author=user2)
     url = reverse("scenario-detail", kwargs={"pk": scenario.pk})
-    data = {"name": "Updated Name"}
+    data = {"title": "Updated Name"}
     response = auth_client1.patch(url, data)
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
 @pytest.mark.django_db
 def test_owner_can_update_scenario(auth_client1, user1):
-    scenario = Scenario.objects.create(name="Test Scenario", author=user1)
+    scenario = Scenario.objects.create(title="Test Scenario", author=user1)
     url = reverse("scenario-detail", kwargs={"pk": scenario.id})
-    data = {"name": "Updated Name"}
+    data = {"title": "Updated Name"}
     response = auth_client1.patch(url, data)
     assert response.status_code == status.HTTP_200_OK
 
     scenario.refresh_from_db()
-    assert scenario.name == "Updated Name"
+    assert scenario.title == "Updated Name"
 
 
 @pytest.mark.django_db
 def test_admin_can_update_scenario(admin_client, user1):
-    scenario = Scenario.objects.create(name="Test Scenario", author=user1)
+    scenario = Scenario.objects.create(title="Test Scenario", author=user1)
     url = reverse("scenario-detail", kwargs={"pk": scenario.pk})
-    data = {"name": "Updated Name"}
+    data = {"title": "Updated title"}
     response = admin_client.patch(url, data)
     assert response.status_code == status.HTTP_200_OK
     scenario.refresh_from_db()
-    assert scenario.name == "Updated Name"
+    assert scenario.title == "Updated title"
 
 
 @pytest.mark.django_db
 def test_owner_can_delete_scenario(auth_client1, user1):
-    scenario = Scenario.objects.create(name="Test Scenario", author=user1)
+    scenario = Scenario.objects.create(title="Test Scenario", author=user1)
     url = reverse("scenario-detail", kwargs={"pk": scenario.pk})
     response = auth_client1.delete(url)
     assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -273,7 +272,7 @@ def test_owner_can_delete_scenario(auth_client1, user1):
 
 @pytest.mark.django_db
 def test_admin_can_delete_scenario(admin_client, user1):
-    scenario = Scenario.objects.create(name="Test Scenario", author=user1)
+    scenario = Scenario.objects.create(title="Test Scenario", author=user1)
     url = reverse("scenario-detail", kwargs={"pk": scenario.pk})
     response = admin_client.delete(url)
     assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -282,7 +281,7 @@ def test_admin_can_delete_scenario(admin_client, user1):
 
 @pytest.mark.django_db
 def test_auth_nonowner_cannot_delete_scenario(auth_client1, user2):
-    scenario = Scenario.objects.create(name="Test Scenario", author=user2)
+    scenario = Scenario.objects.create(title="Test Scenario", author=user2)
     url = reverse("scenario-detail", kwargs={"pk": scenario.pk})
     response = auth_client1.delete(url)
     assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -310,7 +309,7 @@ def test_create_game_authenticated(auth_client1, scenario_setup, user1):
     current_step_data = {
         "id": scenario_setup["step1"].id,
         "title": scenario_setup["step1"].title,
-        "text": scenario_setup["step1"].text,
+        "description": scenario_setup["step1"].description,
         "scenario": scenario_setup["scenario"].id,
         "location": scenario_setup["step1"].location.id,
     }

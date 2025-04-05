@@ -13,7 +13,12 @@ class UserSerializer(serializers.ModelSerializer):
 class LocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Location
-        fields = ["name", "longitude", "latitude"]
+        fields = [
+            "title",
+            "description",
+            "longitude",
+            "latitude",
+        ]
 
 
 class ScenarioSerializer(serializers.ModelSerializer):
@@ -26,7 +31,7 @@ class ScenarioSerializer(serializers.ModelSerializer):
 class StepSerializer(serializers.ModelSerializer):
     class Meta:
         model = Step
-        fields = ["id", "title", "text", "location", "choices"]
+        fields = ["id", "title", "description", "location", "choices"]
         depth = 1
 
 

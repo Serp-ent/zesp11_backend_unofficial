@@ -62,16 +62,16 @@ def auth_client2(user2):
 def scenario_setup(db, user1):
     # Create a location
     location = Location.objects.create(
-        name="Test Location", latitude=10.0, longitude=20.0
+        title="Test Location", latitude=10.0, longitude=20.0
     )
 
     # Create a scenario authored by user1
-    scenario = Scenario.objects.create(name="Test Scenario", author=user1)
+    scenario = Scenario.objects.create(title="Test Scenario", author=user1)
     step1 = Step.objects.create(
-        title="Step 1", text="First step", scenario=scenario, location=location
+        title="Step 1", description="First step", scenario=scenario, location=location
     )
     step2 = Step.objects.create(
-        title="Step 2", text="Second step", scenario=scenario, location=location
+        title="Step 2", description="Second step", scenario=scenario, location=location
     )
 
     # Set the root step if needed
