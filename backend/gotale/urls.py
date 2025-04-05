@@ -2,7 +2,7 @@ from django.urls import path
 from rest_framework import routers
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from gotale.views import (
+from backend.gotale.views import (
     GameViewsets,
     LocationViewset,
     RegisterView,

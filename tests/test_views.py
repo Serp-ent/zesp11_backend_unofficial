@@ -3,7 +3,7 @@ from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 
-from gotale.models import Game, History, Location, Scenario
+from backend.gotale.models import Game, History, Location, Scenario
 
 # TODO: group tests by viewset
 

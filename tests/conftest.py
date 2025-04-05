@@ -2,7 +2,7 @@ import pytest
 from django.contrib.auth.models import User
 from rest_framework.test import APIClient
 
-from gotale.models import Choice, Game, Location, Scenario, Session, Step
+from backend.gotale.models import Choice, Game, Location, Scenario, Session, Step
 
 
 @pytest.fixture

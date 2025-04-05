@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "django_extensions",
-    "gotale",
+    "backend.gotale",
 ]
 
 REST_FRAMEWORK = {

@@ -4,7 +4,15 @@ import random
 
 from django.contrib.auth.models import User
 
-from gotale.models import Choice, Game, History, Location, Scenario, Session, Step
+from backend.gotale.models import (
+    Choice,
+    Game,
+    History,
+    Location,
+    Scenario,
+    Session,
+    Step,
+)
 
 # Create Superuser for Testing (if not exists)
 user, created = User.objects.get_or_create(
