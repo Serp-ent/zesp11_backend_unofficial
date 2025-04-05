@@ -66,6 +66,9 @@ class ScenarioViewset(viewsets.ModelViewSet):
 
         return [gotalePermissions.IsOwnerOrAdminOrReadOnly()]
 
+    def perform_create(self, serializer):
+        return serializer.save(author=self.request.user)
+
 
 class GameViewsets(viewsets.ModelViewSet):
     queryset = Game.objects.all()
