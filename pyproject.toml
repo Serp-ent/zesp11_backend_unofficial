@@ -15,7 +15,7 @@ exclude = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["backend"] # Replace with your Django project name
+known-first-party = ["backend"] 
 
 [tool.pylint.MASTER]
 load-plugins = 'pylint_django'

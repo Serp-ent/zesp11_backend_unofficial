@@ -1,9 +1,8 @@
-from datetime import timezone
-
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.utils import timezone
 from django_extensions.db.models import (
     TimeStampedModel,
     TitleDescriptionModel,
@@ -23,7 +22,7 @@ class Location(TitleDescriptionModel):
     )
 
     def __str__(self):
-        return self.name
+        return self.title
 
     class Meta:
         unique_together = [("latitude", "longitude")]
