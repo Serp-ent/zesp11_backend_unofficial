@@ -108,7 +108,6 @@ def test_current_step_post_on_ended_game(auth_client1, create_game, scenario_set
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-
 def test_game_viewset_retrieve_success():
     pass
 

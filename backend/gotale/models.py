@@ -1,3 +1,5 @@
+import uuid
+
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -9,7 +11,22 @@ from django_extensions.db.models import (
 )
 
 
-class Location(TitleDescriptionModel):
+class BaseModel(TimeStampedModel):
+    id = models.UUIDField(
+        primary_key=True,
+        editable=False,
+        default=uuid.uuid4,
+        unique=True,
+    )
+    # TODO: created by
+    # TODO: updated by
+
+    class Meta:
+        abstract = True
+        ordering = ["-created"]
+
+
+class Location(TitleDescriptionModel, BaseModel):
     latitude = models.DecimalField(
         max_digits=9,
         decimal_places=6,
