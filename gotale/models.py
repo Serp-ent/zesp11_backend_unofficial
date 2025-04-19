@@ -29,7 +29,7 @@ class Location(TitleDescriptionModel, BaseModel):
         unique_together = [("latitude", "longitude")]
 
 
-class Scenario(TitleDescriptionModel, TimeStampedModel):
+class Scenario(TitleDescriptionModel, BaseModel):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="scenarios")
     # Only few Steps are marked as root
     # TODO: rethink creation, because this should be non-nullable

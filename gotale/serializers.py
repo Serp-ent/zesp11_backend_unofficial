@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from gotale.models import Game, Location, Scenario, Step
+from gotale.models import Game, Location, Scenario, Step, Choice
 
 User = get_user_model()
 
@@ -9,7 +9,13 @@ User = get_user_model()
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = "__all__"
+        fields = (
+            "email",
+            "first_name",
+            "id",
+            "last_name",
+            "username",
+        )
 
 
 class LocationSerializer(serializers.ModelSerializer):
@@ -26,18 +32,27 @@ class LocationSerializer(serializers.ModelSerializer):
         ]
 
 
-class ScenarioSerializer(serializers.ModelSerializer):
+class ChoiceSerializers(serializers.ModelSerializer):
     class Meta:
-        model = Scenario
-        fields = "__all__"
-        depth = 1
+        model = Choice
+        fields = ["id", "text"]
 
 
 class StepSerializer(serializers.ModelSerializer):
+    choices = ChoiceSerializers(many=True, read_only=True)
+
     class Meta:
         model = Step
         fields = ["id", "title", "description", "location", "choices"]
-        depth = 1
+
+
+class ScenarioSerializer(serializers.ModelSerializer):
+    author = UserSerializer(read_only=True)
+    root_step = StepSerializer()
+
+    class Meta:
+        model = Scenario
+        fields = "__all__"
 
 
 class GameSerializer(serializers.ModelSerializer):
