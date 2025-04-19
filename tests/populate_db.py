@@ -4,7 +4,7 @@ import random
 
 from django.contrib.auth.models import User
 
-from backend.gotale.models import (
+from gotale.models import (
     Choice,
     Game,
     History,

@@ -2,7 +2,7 @@ import pytest
 from django.urls import reverse
 from rest_framework import status
 
-from backend.gotale.models import Scenario
+from gotale.models import Scenario
 
 
 @pytest.mark.django_db

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from backend.gotale.models import Location
+from gotale.models import Location
 
 # Register your models here.
 

@@ -2,7 +2,7 @@ import pytest
 from django.urls import reverse
 from rest_framework import status
 
-from backend.gotale.models import Game, History
+from gotale.models import Game, History
 
 
 @pytest.mark.django_db

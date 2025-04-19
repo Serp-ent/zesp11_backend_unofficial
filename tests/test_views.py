@@ -2,7 +2,7 @@ import pytest
 from django.urls import reverse
 from rest_framework import status
 
-from backend.gotale.models import Game
+from gotale.models import Game
 
 
 # # ---------------------------

@@ -7,9 +7,9 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from backend.gotale import permissions as gotalePermissions
-from backend.gotale.models import Choice, Game, History, Location, Scenario, Session
-from backend.gotale.serializers import (
+from gotale import permissions as gotalePermissions
+from gotale.models import Choice, Game, History, Location, Scenario, Session
+from gotale.serializers import (
     GameSerializer,
     LocationSerializer,
     MakeChoiceSerializer,

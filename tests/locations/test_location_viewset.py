@@ -5,7 +5,7 @@ from django.urls import reverse
 from model_bakery import baker
 from rest_framework import status
 
-from backend.gotale.models import Location
+from gotale.models import Location
 
 LOCATION_LIST = [
     {

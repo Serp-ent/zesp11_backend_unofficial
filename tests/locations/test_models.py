@@ -1,7 +1,7 @@
 import pytest
 from model_bakery import baker
 
-from backend.gotale.models import Location
+from gotale.models import Location
 
 
 @pytest.fixture
