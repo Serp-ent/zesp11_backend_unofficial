@@ -23,4 +23,16 @@ class BaseModel(TimeStampedModel):
 
 
 class User(BaseModel, AbstractUser):
-    pass
+    email = models.EmailField(
+        unique=True,
+        blank=False,
+        null=False,
+    )
+    password = models.CharField(
+        max_length=255,
+        blank=False,
+        null=False,
+    )
+
+    def __str__(self):
+        return self.username

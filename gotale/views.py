@@ -5,7 +5,6 @@ from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
 
 from gotale import permissions as gotalePermissions
 from gotale.models import Choice, Game, History, Location, Scenario, Session
@@ -15,7 +14,9 @@ from gotale.serializers import (
     MakeChoiceSerializer,
     ScenarioSerializer,
     StepSerializer,
+    UserRegisterSerializer,
     UserSerializer,
+    UserUpdateSerializer,
 )
 
 User = get_user_model()
@@ -24,8 +25,13 @@ User = get_user_model()
 # Create your views here.
 class UserViewset(viewsets.ModelViewSet):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
-    permission_classes = [gotalePermissions.UserPermission]
+    # TODO:
+    # permission_classes = [gotalePermissions.UserPermission]
+
+    def get_serializer_class(self):
+        if self.action in ["update", "partial_update"]:
+            return UserUpdateSerializer
+        return UserSerializer
 
     @action(
         detail=False,
@@ -168,19 +174,13 @@ class GameViewsets(viewsets.ModelViewSet):
 
 
 class RegisterView(generics.CreateAPIView):
-    serializer_class = UserSerializer
+    serializer_class = UserRegisterSerializer
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.save
-
-        # Generate tokens for immediate login
-        refresh = RefreshToken.for_user(user)
+        user = serializer.save()
         return Response(
-            {
-                "refresh": str(refresh),
-                "access": str(refresh.access_token),
-            },
+            UserSerializer(user).data,
             status=status.HTTP_201_CREATED,
         )

@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from gotale.models import Game, Location, Scenario, Step, Choice
+from gotale.models import Choice, Game, Location, Scenario, Step
 
 User = get_user_model()
 
@@ -15,7 +15,46 @@ class UserSerializer(serializers.ModelSerializer):
             "id",
             "last_name",
             "username",
+            "date_joined",
         )
+
+
+class UserRegisterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            "email",
+            "first_name",
+            "password",
+            "last_name",
+            "username",
+        )
+
+
+class UserUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "email",
+            "first_name",
+            "password",
+            "last_name",
+            "username",
+            "date_joined",
+        )
+        extra_kwargs = {
+            "password": {"write_only": True},
+        }
+
+    def update(self, instance, validated_data):
+        password = validated_data.pop("password", None)
+        user = super().update(instance, validated_data)
+        if password:
+            user.set_password(password)
+            user.save()
+
+        return user
 
 
 class LocationSerializer(serializers.ModelSerializer):

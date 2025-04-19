@@ -44,7 +44,7 @@ def scenario_fixture(user1):
         {"id": 6, "text": "Go to child 2", "next": child_steps[1]},
     ]
 
-    choices = [
+    [
         baker.make(
             Choice,
             step=root_step,
@@ -154,11 +154,12 @@ def test_scenario_viewset_retrieve_success(scenario_fixture, anon_client, user1)
         status.HTTP_200_OK,
         {
             "author": {
-                "email": "",
-                "first_name": "",
+                "email": user1.email,
+                "first_name": user1.first_name,
                 "id": str(user1.id),
-                "last_name": "",
-                "username": "user1",
+                "last_name": user1.last_name,
+                "username": user1.username,
+                "date_joined": ANY,
             },
             "created": ANY,
             "description": "Test Description",

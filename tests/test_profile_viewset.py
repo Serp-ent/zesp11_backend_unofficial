@@ -1,7 +1,3 @@
-import pytest
-from django.urls import reverse
-
-
 # @pytest.mark.django_db
 # def test_anon_can_list_user_profiles(anon_client, user1, user2):
 #     url = reverse("user-list")
