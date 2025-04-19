@@ -1,13 +1,15 @@
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from gotale.models import Game, Location, Scenario, Step
+
+User = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "username", "email", "first_name", "last_name", "date_joined"]
+        fields = "__all__"
 
 
 class LocationSerializer(serializers.ModelSerializer):

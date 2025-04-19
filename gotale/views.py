@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.request import Request
@@ -17,6 +17,8 @@ from gotale.serializers import (
     StepSerializer,
     UserSerializer,
 )
+
+User = get_user_model()
 
 
 # Create your views here.

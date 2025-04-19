@@ -2,7 +2,7 @@
 
 import random
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
 from gotale.models import (
     Choice,
@@ -13,6 +13,8 @@ from gotale.models import (
     Session,
     Step,
 )
+
+User = get_user_model()
 
 # Create Superuser for Testing (if not exists)
 user, created = User.objects.get_or_create(

@@ -1,5 +1,6 @@
 import uuid
 
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django_extensions.db.models import TimeStampedModel
 
@@ -19,3 +20,7 @@ class BaseModel(TimeStampedModel):
     class Meta:
         abstract = True
         ordering = ["-created"]
+
+
+class User(BaseModel, AbstractUser):
+    pass

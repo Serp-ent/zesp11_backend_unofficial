@@ -1,6 +1,3 @@
-import uuid
-
-from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -10,7 +7,7 @@ from django_extensions.db.models import (
     TitleDescriptionModel,
 )
 
-from core.models import BaseModel
+from core.models import BaseModel, User
 
 
 class Location(TitleDescriptionModel, BaseModel):

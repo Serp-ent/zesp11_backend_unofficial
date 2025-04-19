@@ -1,8 +1,10 @@
 import pytest
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 
 from gotale.models import Choice, Game, Location, Scenario, Session, Step
+
+User = get_user_model()
 
 
 @pytest.fixture
