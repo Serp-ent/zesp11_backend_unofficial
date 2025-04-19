@@ -10,20 +10,7 @@ from django_extensions.db.models import (
     TitleDescriptionModel,
 )
 
-
-class BaseModel(TimeStampedModel):
-    id = models.UUIDField(
-        primary_key=True,
-        editable=False,
-        default=uuid.uuid4,
-        unique=True,
-    )
-    # TODO: created by
-    # TODO: updated by
-
-    class Meta:
-        abstract = True
-        ordering = ["-created"]
+from core.models import BaseModel
 
 
 class Location(TitleDescriptionModel, BaseModel):
