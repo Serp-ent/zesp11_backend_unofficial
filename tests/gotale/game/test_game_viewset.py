@@ -2,110 +2,22 @@ from unittest.mock import ANY
 
 import pytest
 from django.urls import reverse
+from model_bakery import baker
 from rest_framework import status
 
 from gotale.models import Game
 
 
+@pytest.fixture
 @pytest.mark.django_db
-def test_read_games_anonymous(anon_client, create_game):
-    list_url = reverse("game-list")
-    detail_url = reverse("game-detail", args=[create_game.id])
-
-    response = anon_client.get(list_url)
-    assert response.status_code == status.HTTP_200_OK
-
-    response = anon_client.get(detail_url)
-    assert response.status_code == status.HTTP_200_OK
-
-
-# @pytest.mark.django_db
-# def test_create_game_authenticated(auth_client1, scenario_setup, user1):
-#     url = reverse("game-list")
-#     # Build nested dictionary for current_step according to what the serializer expects.
-#     current_step_data = {
-#         "id": scenario_setup["step1"].id,
-#         "title": scenario_setup["step1"].title,
-#         "description": scenario_setup["step1"].description,
-#         "scenario": scenario_setup["scenario"].id,
-#         "location": scenario_setup["step1"].location.id,
-#     }
-#     data = {
-#         "scenario": scenario_setup["scenario"].id,
-#         "current_step": current_step_data,
-#         "user": user1.id,
-#     }
-#     response = auth_client1.post(url, data, format="json")
-#     assert response.status_code == status.HTTP_201_CREATED, response.data
-
-#     # Check that the created game has its user set correctly.
-#     game_id = response.data.get("id")
-#     game = Game.objects.get(pk=game_id)
-#     assert game.user == user1
-
-#     # Check that an active session was auto-created.
-#     active_sessions = game.sessions.filter(is_active=True)
-#     assert active_sessions.exists(), "Active session should be created for the game"
-
-
-# @pytest.mark.django_db
-# def test_current_step_get_in_game_user(auth_client1, create_game, scenario_setup):
-#     # auth_client1 is logged in as user1; the game created has user=user1 and an active session.
-#     url = reverse("game-current-step", args=[create_game.id])
-#     response = auth_client1.get(url)
-#     assert response.status_code == status.HTTP_200_OK
-#     # Verify that the current step matches step1
-#     assert response.data.get("id") == scenario_setup["step1"].id
-
-
-# @pytest.mark.django_db
-# def test_current_step_get_not_in_game_user(auth_client2, create_game):
-#     # auth_client2 is logged in as user2 (not owner, no active session for this game)
-#     url = reverse("game-current-step", args=[create_game.id])
-#     response = auth_client2.get(url)
-#     assert response.status_code == status.HTTP_403_FORBIDDEN
-
-
-# @pytest.mark.django_db
-# def test_current_step_post_valid_choice(auth_client1, create_game, scenario_setup):
-#     url = reverse("game-current-step", args=[create_game.id])
-#     data = {"choice_id": scenario_setup["choice"].id}
-
-#     response = auth_client1.post(url, data, format="json")
-#     assert response.status_code == status.HTTP_200_OK
-
-#     # Verify that the game’s current_step is updated to step2.
-#     create_game.refresh_from_db()
-#     assert create_game.current_step.id == scenario_setup["step2"].id
-
-#     # Verify that a history record was created.
-#     history_exists = History.objects.filter(
-#         session__game=create_game,
-#         step=scenario_setup["step1"],
-#         choice=scenario_setup["choice"],
-#     ).exists()
-#     assert history_exists
-
-
-# @pytest.mark.django_db
-# def test_current_step_post_invalid_choice(auth_client1, create_game):
-#     url = reverse("game-current-step", args=[create_game.id])
-#     # Provide an invalid choice ID.
-#     data = {"choice_id": 9999}
-#     response = auth_client1.post(url, data, format="json")
-#     assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-
-# @pytest.mark.django_db
-# def test_current_step_post_on_ended_game(auth_client1, create_game, scenario_setup):
-#     # End the game.
-#     create_game.end = timezone.now()
-#     create_game.save()
-
-#     url = reverse("game-current-step", args=[create_game.id])
-#     data = {"choice_id": scenario_setup["choice"].id}
-#     response = auth_client1.post(url, data, format="json")
-#     assert response.status_code == status.HTTP_400_BAD_REQUEST
+def game_fixture(scenario_fixture, user1):
+    return baker.make(
+        Game,
+        scenario=scenario_fixture,
+        # TODO: the current step shoud be set on model level during creation
+        current_step=scenario_fixture.root_step,
+        user=user1,
+    )
 
 
 def test_game_viewset_retrieve_success():
@@ -270,9 +182,46 @@ def test_game_viewset_destroy_errors():
     pass
 
 
-def test_game_viewset_current_step_success():
+@pytest.mark.django_db
+def test_game_viewset_current_step_get_success(admin_client, game_fixture):
+    response = admin_client.get(
+        reverse("game-current-step", kwargs={"pk": game_fixture.id})
+    )
+
+    assert (response.status_code, response.json()) == (
+        status.HTTP_200_OK,
+        {
+            "description": None,
+            "location": None,
+            "title": "Root Step",
+            "choices": [
+                {
+                    "id": "01234567-89ab-cdef-0123-000000000011",
+                    "text": "Go to child 1",
+                },
+                {
+                    "id": "01234567-89ab-cdef-0123-000000000022",
+                    "text": "Go to child 2",
+                },
+            ],
+            "id": "01234567-89ab-cdef-0123-111111111111",
+        },
+    )
+
+
+# TODO: invalid choice
+# TODO: user that is not in the game
+# TODO: step_get on game ended
+def test_game_viewset_current_step_get_errors():
     pass
 
 
-def test_game_viewset_current_step_errors():
+def test_game_viewset_current_step_post_success():
+    pass
+
+
+# TODO: invalid choice
+# TODO: user that is not in the game
+# TODO: step_post on game ended
+def test_game_viewset_current_step_post_errors():
     pass

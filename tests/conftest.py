@@ -11,7 +11,8 @@ User = get_user_model()
 @pytest.fixture
 @pytest.mark.django_db
 def user1():
-    return User.objects.create_user(
+    return baker.make(
+        User,
         username="user1",
         password="user1",
     )

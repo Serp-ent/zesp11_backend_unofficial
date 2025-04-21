@@ -30,7 +30,6 @@ class StepSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Step
-
         fields = ["id", "title", "description", "location", "choices"]
 
 

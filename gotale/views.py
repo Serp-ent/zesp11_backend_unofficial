@@ -149,8 +149,7 @@ class GameViewsets(viewsets.ModelViewSet):
         # TODO: permissions
         game = self.get_object()
         if request.method == "GET":
-            step = game.current_step
-            serializer = StepSerializer(step)
+            serializer = StepSerializer(game.current_step)
             return Response(serializer.data)
 
         # POST METHDO
