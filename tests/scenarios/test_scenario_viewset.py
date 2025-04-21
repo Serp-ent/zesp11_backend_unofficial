@@ -75,7 +75,12 @@ def scenario_fixture(user1):
         root_step=None,
     )
 
-    root_step = baker.make(Step, scenario=scenario, title="Root Step")
+    root_step = baker.make(
+        Step,
+        id="01234567-89ab-cdef-0123-111111111111",
+        scenario=scenario,
+        title="Root Step",
+    )
     scenario.root_step = root_step
     scenario.save()
 
@@ -86,8 +91,16 @@ def scenario_fixture(user1):
     )
 
     choice_data = [
-        {"id": 5, "text": "Go to child 1", "next": child_steps[0]},
-        {"id": 6, "text": "Go to child 2", "next": child_steps[1]},
+        {
+            "id": "01234567-89ab-cdef-0123-000000000011",
+            "text": "Go to child 1",
+            "next": child_steps[0],
+        },
+        {
+            "id": "01234567-89ab-cdef-0123-000000000022",
+            "text": "Go to child 2",
+            "next": child_steps[1],
+        },
     ]
 
     [
@@ -214,10 +227,16 @@ def test_scenario_viewset_retrieve_success(scenario_fixture, anon_client, user1)
             "modified": ANY,
             "root_step": {
                 "description": None,
-                "id": 1,
+                "id": "01234567-89ab-cdef-0123-111111111111",
                 "choices": [
-                    {"id": 5, "text": "Go to child 1"},
-                    {"id": 6, "text": "Go to child 2"},
+                    {
+                        "id": "01234567-89ab-cdef-0123-000000000011",
+                        "text": "Go to child 1",
+                    },
+                    {
+                        "id": "01234567-89ab-cdef-0123-000000000022",
+                        "text": "Go to child 2",
+                    },
                 ],
                 "location": None,
                 "title": "Root Step",
@@ -346,8 +365,109 @@ def test_scenario_viewset_create_success(auth_client1, user1):
                 ],
             },
             status.HTTP_400_BAD_REQUEST,
-            {},
+            {
+                "steps": [
+                    "Step 1 has a choice pointing to non-existent step {'text': 'Go to 2', 'next': 2}.",
+                ],
+            },
             id="choices_point_to_unknown_steps",
+        ),
+        pytest.param(
+            {
+                "title": "Time Travel Adventure",
+                "description": "A simple story",
+                "steps": [
+                    {
+                        "id": 1,
+                        "title": "step 1",
+                        "description": "",
+                        "location": "",
+                        "choices": [
+                            {"text": "Go to 1", "next": 2},
+                            {"text": "Go to 2", "next": 2},
+                            {"text": "Go to 3", "next": 2},
+                            {"text": "Go to 4", "next": 2},
+                            {"text": "Go to 5", "next": 2},
+                        ],
+                    },
+                    {
+                        "id": 2,
+                        "title": "step 1",
+                        "description": "",
+                        "location": "",
+                        "choices": [],
+                    },
+                ],
+            },
+            status.HTTP_400_BAD_REQUEST,
+            {
+                "steps": [
+                    "Step 1 has more than 4 choices. A step cannot have more than 4 choices.",
+                ],
+            },
+            id="more_than_4_choices",
+        ),
+        pytest.param(
+            {
+                "title": "Time Travel Adventure",
+                "description": "A simple story",
+                "steps": [
+                    {
+                        "id": 1,
+                        "title": "step 1",
+                        "choices": [
+                            {"text": "Go to 2", "next": 2},
+                            {"text": "Go to 2", "next": 2},
+                        ],
+                    },
+                    {
+                        "id": 2,
+                        "title": "step 2",
+                        "choices": [],
+                    },
+                    {
+                        "id": 2,
+                        "title": "step 3",
+                        "choices": [],
+                    },
+                ],
+            },
+            status.HTTP_400_BAD_REQUEST,
+            {
+                "steps": [
+                    "Step with id 2 is duplicated.",
+                ],
+            },
+            id="step_with_same_id",
+        ),
+        pytest.param(
+            {
+                "title": "Time Travel Adventure",
+                "description": "A simple story",
+                "steps": [
+                    {
+                        "id": 1,
+                        "title": "step 1",
+                        "description": "",
+                        "location": "",
+                        "choices": [],
+                    },
+                    {
+                        "id": 2,
+                        "title": "step 1",
+                        "description": "",
+                        "location": "",
+                        "choices": [],
+                    },
+                ],
+            },
+            status.HTTP_400_BAD_REQUEST,
+            {
+                "steps": [
+                    "Multiple root steps found: [1, 2]. There must be exactly one root step.",
+                ],
+            },
+            id="two_root_steps",
         ),
     ),
 )
@@ -368,16 +488,42 @@ def test_scenario_viewset_create_errors(
 
 
 def test_scenario_viewset_update_success():
+    # TODO: replace whole scenario
     pass
 
 
 def test_scenario_viewset_update_errors():
+    # TODO:
     pass
 
 
-def test_scenario_viewset_destroy_success():
-    pass
+@pytest.mark.django_db
+def test_scenario_viewset_destroy_success(admin_client, scenario_fixture):
+    steps = Scenario.objects.get(pk=scenario_fixture.id).steps.all()
+
+    response = admin_client.delete(
+        reverse("scenario-detail", kwargs={"pk": scenario_fixture.id})
+    )
+
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+    assert not Scenario.objects.filter(pk=scenario_fixture.id).exists()
+    assert not Step.objects.filter(scenario=scenario_fixture.id).exists()
+    assert not Choice.objects.filter(step__in=steps).exists()
 
 
-def test_scenario_viewset_destroy_errors():
-    pass
+@pytest.mark.parametrize(
+    "pk, expected_status_code",
+    (
+        pytest.param(
+            "1232131",
+            status.HTTP_404_NOT_FOUND,
+        ),
+    ),
+)
+@pytest.mark.django_db
+def test_scenario_viewset_destroy_errors(
+    admin_client, scenario_fixture, pk, expected_status_code
+):
+    response = admin_client.delete(reverse("scenario-detail", kwargs={"pk": pk}))
+
+    assert response.status_code == expected_status_code

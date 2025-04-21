@@ -81,6 +81,42 @@ class ScenarioCreateSerializer(BaseModelSerializer):
     def validate_steps(self, value):
         if len(value) < 1:
             raise serializers.ValidationError("A scenario must have at least one step.")
+
+        # Create a mapping of step IDs to their choices
+        step_choices, errors = self.get_step_mapping(value)
+        if (
+            errors
+        ):  # Check for duplicate step IDs and informa the user only about that in the first place
+            raise serializers.ValidationError(errors)
+
+        referenced_ids = set()
+        for step_id, choices in step_choices.items():
+            if len(choices) > 4:
+                errors.append(
+                    f"Step {step_id} has more than 4 choices. A step cannot have more than 4 choices."
+                )
+            for choice in choices:
+                # Check for choice references to steps that don't exist
+                if choice["next"] not in step_choices:
+                    errors.append(
+                        f"Step {step_id} has a choice pointing to non-existent step {choice}."
+                    )
+                else:
+                    referenced_ids.add(choice["next"])
+
+        root_ids = step_choices.keys() - referenced_ids
+        if len(root_ids) == 0:
+            errors.append(
+                "No root step found. At least one step must not be a target of any choice."
+            )
+        elif len(root_ids) > 1:
+            errors.append(
+                f"Multiple root steps found: {list(root_ids)}. There must be exactly one root step."
+            )
+
+        if errors:
+            raise serializers.ValidationError(errors)
+
         return value
 
     @transaction.atomic
@@ -115,6 +151,20 @@ class ScenarioCreateSerializer(BaseModelSerializer):
         Choice.objects.bulk_create(choices_to_create)
 
         return scenario
+
+    def get_step_mapping(self, steps):
+        # Oneliner unsafe (allows repeating id)
+        # step_choices = {step["id"]: step["choices"] for step in value}
+        errors = []
+        step_choices = {}
+        for step in steps:
+            step_id = step["id"]
+            choices = step["choices"]
+            if step_id in step_choices:
+                errors.append(f"Step with id {step_id} is duplicated.")
+            step_choices[step_id] = choices
+
+        return step_choices, errors
 
 
 class GameSerializer(BaseModelSerializer):
