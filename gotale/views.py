@@ -6,6 +6,11 @@ from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from core.serializers import (
+    UserRegisterSerializer,
+    UserSerializer,
+    UserUpdateSerializer,
+)
 from gotale import permissions as gotalePermissions
 from gotale.models import Choice, Game, History, Location, Scenario, Session
 from gotale.serializers import (
@@ -14,9 +19,6 @@ from gotale.serializers import (
     MakeChoiceSerializer,
     ScenarioSerializer,
     StepSerializer,
-    UserRegisterSerializer,
-    UserSerializer,
-    UserUpdateSerializer,
 )
 
 User = get_user_model()

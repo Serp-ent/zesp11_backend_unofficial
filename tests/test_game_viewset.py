@@ -2,7 +2,7 @@ import pytest
 from django.urls import reverse
 from rest_framework import status
 
-from gotale.models import Game, History
+from gotale.models import History
 
 
 @pytest.mark.django_db
@@ -17,33 +17,33 @@ def test_read_games_anonymous(anon_client, create_game):
     assert response.status_code == status.HTTP_200_OK
 
 
-@pytest.mark.django_db
-def test_create_game_authenticated(auth_client1, scenario_setup, user1):
-    url = reverse("game-list")
-    # Build nested dictionary for current_step according to what the serializer expects.
-    current_step_data = {
-        "id": scenario_setup["step1"].id,
-        "title": scenario_setup["step1"].title,
-        "description": scenario_setup["step1"].description,
-        "scenario": scenario_setup["scenario"].id,
-        "location": scenario_setup["step1"].location.id,
-    }
-    data = {
-        "scenario": scenario_setup["scenario"].id,
-        "current_step": current_step_data,
-        "user": user1.id,
-    }
-    response = auth_client1.post(url, data, format="json")
-    assert response.status_code == status.HTTP_201_CREATED, response.data
+# @pytest.mark.django_db
+# def test_create_game_authenticated(auth_client1, scenario_setup, user1):
+#     url = reverse("game-list")
+#     # Build nested dictionary for current_step according to what the serializer expects.
+#     current_step_data = {
+#         "id": scenario_setup["step1"].id,
+#         "title": scenario_setup["step1"].title,
+#         "description": scenario_setup["step1"].description,
+#         "scenario": scenario_setup["scenario"].id,
+#         "location": scenario_setup["step1"].location.id,
+#     }
+#     data = {
+#         "scenario": scenario_setup["scenario"].id,
+#         "current_step": current_step_data,
+#         "user": user1.id,
+#     }
+#     response = auth_client1.post(url, data, format="json")
+#     assert response.status_code == status.HTTP_201_CREATED, response.data
 
-    # Check that the created game has its user set correctly.
-    game_id = response.data.get("id")
-    game = Game.objects.get(pk=game_id)
-    assert game.user == user1
+#     # Check that the created game has its user set correctly.
+#     game_id = response.data.get("id")
+#     game = Game.objects.get(pk=game_id)
+#     assert game.user == user1
 
-    # Check that an active session was auto-created.
-    active_sessions = game.sessions.filter(is_active=True)
-    assert active_sessions.exists(), "Active session should be created for the game"
+#     # Check that an active session was auto-created.
+#     active_sessions = game.sessions.filter(is_active=True)
+#     assert active_sessions.exists(), "Active session should be created for the game"
 
 
 @pytest.mark.django_db

@@ -16,7 +16,8 @@ USER_LIST = [
         "id": "01234567-89ab-cdef-0123-000000000003",
         "last_name": "Kowalski",
         "username": "andrzejkowalski",
-        "date_joined": ANY,
+        "created": ANY,
+        "modified": ANY,
     },
     {
         "email": "marek@example.com",
@@ -24,7 +25,8 @@ USER_LIST = [
         "id": "01234567-89ab-cdef-0123-000000000002",
         "last_name": "Pieczarek",
         "username": "marekpieczarek",
-        "date_joined": ANY,
+        "created": ANY,
+        "modified": ANY,
     },
     {
         "email": "jacek@example.com",
@@ -32,7 +34,8 @@ USER_LIST = [
         "id": "01234567-89ab-cdef-0123-000000000001",
         "last_name": "Placek",
         "username": "jacekplacek",
-        "date_joined": ANY,
+        "created": ANY,
+        "modified": ANY,
     },
 ]
 
@@ -91,7 +94,8 @@ def test_user_viewset_create_success(anon_client):
     assert (response.status_code, response.json()) == (
         status.HTTP_201_CREATED,
         {
-            "date_joined": ANY,
+            "created": ANY,
+            "modified": ANY,
             "email": "marek@pieczarek.com",
             "first_name": "",
             "id": ANY,

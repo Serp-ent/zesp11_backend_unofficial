@@ -1,74 +1,21 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
+from core.serializers import BaseModelSerializer, UserSerializer
 from gotale.models import Choice, Game, Location, Scenario, Step
 
 User = get_user_model()
 
 
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = (
-            "email",
-            "first_name",
-            "id",
-            "last_name",
-            "username",
-            "date_joined",
-        )
-
-
-class UserRegisterSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = (
-            "email",
-            "first_name",
-            "password",
-            "last_name",
-            "username",
-        )
-
-
-class UserUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = (
-            "id",
-            "email",
-            "first_name",
-            "password",
-            "last_name",
-            "username",
-            "date_joined",
-        )
-        extra_kwargs = {
-            "password": {"write_only": True},
-        }
-
-    def update(self, instance, validated_data):
-        password = validated_data.pop("password", None)
-        user = super().update(instance, validated_data)
-        if password:
-            user.set_password(password)
-            user.save()
-
-        return user
-
-
-class LocationSerializer(serializers.ModelSerializer):
-    class Meta:
+class LocationSerializer(BaseModelSerializer):
+    class Meta(BaseModelSerializer.Meta):
         model = Location
-        fields = [
-            "id",
-            "created",
-            "modified",
+        fields = BaseModelSerializer.Meta.fields + (
             "title",
             "description",
             "longitude",
             "latitude",
-        ]
+        )
 
 
 class ChoiceSerializers(serializers.ModelSerializer):
@@ -85,21 +32,26 @@ class StepSerializer(serializers.ModelSerializer):
         fields = ["id", "title", "description", "location", "choices"]
 
 
-class ScenarioSerializer(serializers.ModelSerializer):
+class ScenarioSerializer(BaseModelSerializer):
     author = UserSerializer(read_only=True)
     root_step = StepSerializer()
 
-    class Meta:
+    class Meta(BaseModelSerializer.Meta):
         model = Scenario
-        fields = "__all__"
+        fields = BaseModelSerializer.Meta.fields + (
+            "author",
+            "root_step",
+            "description",
+            "title",
+        )
 
 
-class GameSerializer(serializers.ModelSerializer):
+class GameSerializer(BaseModelSerializer):
     current_step = StepSerializer(read_only=True)
 
-    class Meta:
+    class Meta(BaseModelSerializer.Meta):
         model = Game
-        fields = "__all__"
+        fields = BaseModelSerializer.Meta.fields + ("current_step",)
 
 
 # class GameWriteSerializer(serializers.ModelSerializer):
