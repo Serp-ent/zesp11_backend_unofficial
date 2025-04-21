@@ -53,7 +53,7 @@ class Scenario(TitleDescriptionModel, BaseModel):
         return super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.name
+        return self.title
 
 
 class Step(TitleDescriptionModel):
@@ -108,6 +108,9 @@ class Choice(models.Model):
     #             fields=["step", "order"], name="unique_order_per_step"
     #         )
     #     ]
+
+    def __str__(self):
+        return self.text
 
 
 class Game(TimeStampedModel):
