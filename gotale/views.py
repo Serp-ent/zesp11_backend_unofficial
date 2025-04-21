@@ -14,6 +14,7 @@ from core.serializers import (
 from gotale import permissions as gotalePermissions
 from gotale.models import Choice, Game, History, Location, Scenario, Session
 from gotale.serializers import (
+    GameCreateSerializer,
     GameSerializer,
     LocationSerializer,
     MakeChoiceSerializer,
@@ -102,6 +103,12 @@ class GameViewsets(viewsets.ModelViewSet):
     queryset = Game.objects.all()
     serializer_class = GameSerializer
     permission_classes = [gotalePermissions.isAuthenticatedOrAdmin]
+    serializers_by_action = {
+        "create": GameCreateSerializer,
+    }
+
+    def get_serializer_class(self):
+        return self.serializers_by_action.get(self.action, GameSerializer)
 
     def get_permissions(self):
         if self.action in ["current_step", "end_session"]:
@@ -112,10 +119,24 @@ class GameViewsets(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         """Auto-create first session on game creation"""
         game = serializer.save(user=self.request.user)
+        game.current_step = game.scenario.root_step
+        game.save()
 
-        Session.objects.create(game=game, is_active=True)
+        # Session.objects.create(game=game, is_active=True)
 
         return game
+
+    def create(self, request, *args, **kwargs):
+        serializer_create = self.get_serializer(data=request.data)
+        serializer_create.is_valid(raise_exception=True)
+
+        self.perform_create(serializer_create)
+
+        instance = serializer_create.instance
+        return Response(
+            GameSerializer(instance, context=self.get_serializer_context()).data,
+            status=status.HTTP_201_CREATED,
+        )
 
     @action(
         detail=True,

@@ -169,10 +169,25 @@ class ScenarioCreateSerializer(BaseModelSerializer):
 
 class GameSerializer(BaseModelSerializer):
     current_step = StepSerializer(read_only=True)
+    user = UserSerializer(read_only=True)
+    scenario = ScenarioSerializer(read_only=True)
 
     class Meta(BaseModelSerializer.Meta):
         model = Game
-        fields = BaseModelSerializer.Meta.fields + ("current_step",)
+        fields = BaseModelSerializer.Meta.fields + (
+            "current_step",
+            "user",
+            "scenario",
+        )
+
+
+class GameCreateSerializer(serializers.ModelSerializer):
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+
+    class Meta:
+        model = Game
+        fields = ("user", "scenario")
+        read_only = ("user",)
 
 
 # class GameWriteSerializer(serializers.ModelSerializer):

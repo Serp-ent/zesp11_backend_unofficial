@@ -113,7 +113,7 @@ class Choice(models.Model):
         return self.text
 
 
-class Game(TimeStampedModel):
+class Game(BaseModel):
     # TODO: Multiplayer with M2M field for Game
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="games")
     scenario = models.ForeignKey(Scenario, on_delete=models.CASCADE)

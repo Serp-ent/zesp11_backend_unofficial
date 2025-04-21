@@ -1,5 +1,6 @@
 import pytest
 from django.contrib.auth import get_user_model
+from model_bakery import baker
 from rest_framework.test import APIClient
 
 from gotale.models import Choice, Game, Location, Scenario, Session, Step
@@ -107,3 +108,57 @@ def create_game(db, user1, scenario_setup):
     session.user = user1
     session.save()
     return game
+
+
+@pytest.fixture
+@pytest.mark.django_db
+def scenario_fixture(user1):
+    scenario = baker.make(
+        Scenario,
+        id="01234567-89ab-cdef-0123-000000000000",
+        author=user1,
+        title="Test Scenario",
+        description="Test Description",
+        root_step=None,
+    )
+
+    root_step = baker.make(
+        Step,
+        id="01234567-89ab-cdef-0123-111111111111",
+        scenario=scenario,
+        title="Root Step",
+    )
+    scenario.root_step = root_step
+    scenario.save()
+
+    child_steps = baker.make(
+        Step,
+        scenario=scenario,
+        _quantity=2,
+    )
+
+    choice_data = [
+        {
+            "id": "01234567-89ab-cdef-0123-000000000011",
+            "text": "Go to child 1",
+            "next": child_steps[0],
+        },
+        {
+            "id": "01234567-89ab-cdef-0123-000000000022",
+            "text": "Go to child 2",
+            "next": child_steps[1],
+        },
+    ]
+
+    [
+        baker.make(
+            Choice,
+            step=root_step,
+            id=data["id"],
+            text=data["text"],
+            next=data["next"],
+        )
+        for data in choice_data
+    ]
+
+    return scenario
