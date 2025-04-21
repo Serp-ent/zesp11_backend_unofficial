@@ -1,3 +1,5 @@
+import uuid
+
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -55,6 +57,7 @@ class Scenario(TitleDescriptionModel, BaseModel):
 
 
 class Step(TitleDescriptionModel):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     scenario = models.ForeignKey(
         Scenario, on_delete=models.CASCADE, related_name="steps"
     )
@@ -81,6 +84,8 @@ class Step(TitleDescriptionModel):
 
 class Choice(models.Model):
     # What step the choice belongs to
+    # TODO: use base model
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     step = models.ForeignKey(Step, on_delete=models.CASCADE, related_name="choices")
     text = models.CharField(max_length=50)
     next = models.ForeignKey(

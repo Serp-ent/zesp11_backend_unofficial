@@ -7,6 +7,7 @@ from model_bakery import baker
 from rest_framework import status
 
 from gotale.models import Choice, Scenario, Step
+from tests.utils import is_valid_uuid4
 
 User = get_user_model()
 
@@ -299,6 +300,16 @@ def test_scenario_viewset_create_success(auth_client1, user1):
             "text": "Go to 3",
         },
     ]
+
+    # Check if the steps ids are correctly changed to UUID from the Frontend
+    assert all(
+        [
+            is_valid_uuid4(str(id))
+            for id in Step.objects.filter(scenario=response_json["id"]).values_list(
+                "id", flat=True
+            )
+        ]
+    )
 
 
 @pytest.mark.parametrize(
