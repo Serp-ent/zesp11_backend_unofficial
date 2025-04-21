@@ -10,6 +10,51 @@ from gotale.models import Choice, Scenario, Step
 
 User = get_user_model()
 
+SCENARIO_CREATE_PAYLOAD = {
+    "title": "Time Travel Adventure",
+    "description": "A simple story",
+    "steps": [
+        {
+            "id": 1,
+            "title": "step 1",
+            "choices": [
+                {"text": "Go to 2", "next": 2},
+                {"text": "Go to 3", "next": 3},
+            ],
+        },
+        {
+            "id": 2,
+            "title": "step 2",
+            "choices": [
+                {"text": "Go to 4", "next": 4},
+                {"text": "Go to 5", "next": 5},
+            ],
+        },
+        {
+            "id": 3,
+            "title": "step 3",
+            "choices": [
+                {"text": "Go to 6", "next": 6},
+            ],
+        },
+        {
+            "id": 4,
+            "title": "step 4",
+            "choices": [],
+        },
+        {
+            "id": 5,
+            "title": "step 5",
+            "choices": [],
+        },
+        {
+            "id": 6,
+            "title": "step 6",
+            "choices": [],
+        },
+    ],
+}
+
 
 @pytest.fixture
 @pytest.mark.django_db
@@ -195,56 +240,65 @@ def test_scenario_viewset_retrieve_errors(anon_client, scenario_fixture, pk):
 
 
 @pytest.mark.django_db
-def test_scenario_viewset_create_success(auth_client1):
-    payload = {
-        "title": "Time Travel Adventure",
-        "description": "A simple story",
-        "root_step": 1,
-        "steps": [
-            {
-                "id": 1,
+def test_scenario_viewset_create_success(auth_client1, user1):
+    response = auth_client1.post(
+        reverse("scenario-list"),
+        data=SCENARIO_CREATE_PAYLOAD,
+        format="json",
+    )
+
+    assert (response.status_code, response.json()) == (
+        status.HTTP_201_CREATED,
+        {
+            "author": {
+                "created": ANY,
+                "email": user1.email,
+                "first_name": "",
+                "id": str(user1.id),
+                "last_name": "",
+                "modified": ANY,
+                "username": user1.username,
+            },
+            "created": ANY,
+            "description": "A simple story",
+            "id": ANY,
+            "modified": ANY,
+            "title": "Time Travel Adventure",
+            "root_step": {
+                "id": ANY,
                 "title": "step 1",
                 "choices": [
-                    {"text": "Go to 2", "next": 2},
-                    {"text": "Go to 3", "next": 3},
+                    {
+                        "id": ANY,
+                        "text": "Go to 2",
+                    },
+                    {
+                        "id": ANY,
+                        "text": "Go to 3",
+                    },
                 ],
+                "description": None,
+                "location": ANY,
             },
-            {
-                "id": 2,
-                "title": "step 2",
-                "choices": [
-                    {"text": "Go to 4", "next": 4},
-                    {"text": "Go to 5", "next": 5},
-                ],
-            },
-            {
-                "id": 3,
-                "title": "step 3",
-                "choices": [
-                    {"text": "Go to 6", "next": 6},
-                ],
-            },
-            {
-                "id": 4,
-                "title": "step 4",
-                "choices": [],
-            },
-            {
-                "id": 5,
-                "title": "step 5",
-                "choices": [],
-            },
-            {
-                "id": 6,
-                "title": "step 6",
-                "choices": [],
-            },
-        ],
-    }
+        },
+    )
 
-    response = auth_client1.post(reverse("scenario-list"), data=payload)
-
-    assert (response.status_code, response.json()) == (status.HTTP_201_CREATED, {})
+    response_json = response.json()
+    assert Scenario.objects.filter(pk=response_json["id"]).exists()
+    assert list(
+        Scenario.objects.get(pk=response_json["id"]).root_step.choices.values(
+            "id", "text"
+        )
+    ) == [
+        {
+            "id": ANY,
+            "text": "Go to 2",
+        },
+        {
+            "id": ANY,
+            "text": "Go to 3",
+        },
+    ]
 
 
 @pytest.mark.parametrize(
@@ -254,30 +308,20 @@ def test_scenario_viewset_create_success(auth_client1):
             {
                 "title": "Time Travel Adventure",
                 "description": "A simple story",
-                "root_step": 2,
-                "steps": [
-                    {
-                        "id": 1,
-                        "title": "step 1",
-                        "description": "",
-                        "location": "",
-                        "choices": [],
-                    },
-                ],
+                "steps": [],
             },
             status.HTTP_400_BAD_REQUEST,
             {
-                "root_step": [
-                    "Root step must be in steps.",
+                "steps": [
+                    "A scenario must have at least one step.",
                 ],
             },
-            id="root_step_not_in_steps",
+            id="empty_steps",
         ),
         pytest.param(
             {
                 "title": "Time Travel Adventure",
                 "description": "A simple story",
-                "root_step": 1,
                 "steps": [
                     {
                         "id": 1,
@@ -303,6 +347,7 @@ def test_scenario_viewset_create_errors(
     response = auth_client1.post(
         reverse("scenario-list"),
         data=payload,
+        format="json",
     )
 
     assert (response.status_code, response.json()) == (

@@ -12,6 +12,7 @@ class BaseModelSerializer(serializers.ModelSerializer):
         fields = ("id", "created", "modified")
         read_only_fields = fields
         extra_kwargs = {
+            "id": {"read_only": True},
             "created": {"read_only": True},
             "modified": {"read_only": True},
         }

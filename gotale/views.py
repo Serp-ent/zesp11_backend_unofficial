@@ -17,6 +17,7 @@ from gotale.serializers import (
     GameSerializer,
     LocationSerializer,
     MakeChoiceSerializer,
+    ScenarioCreateSerializer,
     ScenarioSerializer,
     StepSerializer,
 )
@@ -68,13 +69,33 @@ class LocationViewset(viewsets.ModelViewSet):
 
 class ScenarioViewset(viewsets.ModelViewSet):
     queryset = Scenario.objects.all()
-    serializer_class = ScenarioSerializer
+
+    serializer_class_by_action = {
+        "create": ScenarioCreateSerializer,
+    }
+
+    def get_serializer_class(self):
+        return self.serializer_class_by_action.get(self.action, ScenarioSerializer)
 
     def get_permissions(self):
         if self.action == "create":
             return [permissions.IsAuthenticated()]
 
         return [gotalePermissions.IsOwnerOrAdminOrReadOnly()]
+
+    def create(self, request, *args, **kwargs):
+        serializer_create = self.get_serializer(data=request.data)
+        serializer_create.is_valid(raise_exception=True)
+
+        instance = self.perform_create(serializer_create)
+
+        return Response(
+            ScenarioSerializer(instance, context=self.get_serializer_context()).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+    def perform_create(self, serializer):
+        return serializer.save(author=self.request.user)
 
 
 class GameViewsets(viewsets.ModelViewSet):
