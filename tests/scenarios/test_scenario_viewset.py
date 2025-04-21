@@ -194,8 +194,121 @@ def test_scenario_viewset_retrieve_errors(anon_client, scenario_fixture, pk):
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
-def test_scenario_viewset_create_errors():
-    pass
+@pytest.mark.django_db
+def test_scenario_viewset_create_success(auth_client1):
+    payload = {
+        "title": "Time Travel Adventure",
+        "description": "A simple story",
+        "root_step": 1,
+        "steps": [
+            {
+                "id": 1,
+                "title": "step 1",
+                "choices": [
+                    {"text": "Go to 2", "next": 2},
+                    {"text": "Go to 3", "next": 3},
+                ],
+            },
+            {
+                "id": 2,
+                "title": "step 2",
+                "choices": [
+                    {"text": "Go to 4", "next": 4},
+                    {"text": "Go to 5", "next": 5},
+                ],
+            },
+            {
+                "id": 3,
+                "title": "step 3",
+                "choices": [
+                    {"text": "Go to 6", "next": 6},
+                ],
+            },
+            {
+                "id": 4,
+                "title": "step 4",
+                "choices": [],
+            },
+            {
+                "id": 5,
+                "title": "step 5",
+                "choices": [],
+            },
+            {
+                "id": 6,
+                "title": "step 6",
+                "choices": [],
+            },
+        ],
+    }
+
+    response = auth_client1.post(reverse("scenario-list"), data=payload)
+
+    assert (response.status_code, response.json()) == (status.HTTP_201_CREATED, {})
+
+
+@pytest.mark.parametrize(
+    "payload, expected_status_code, expected_response_data",
+    (
+        pytest.param(
+            {
+                "title": "Time Travel Adventure",
+                "description": "A simple story",
+                "root_step": 2,
+                "steps": [
+                    {
+                        "id": 1,
+                        "title": "step 1",
+                        "description": "",
+                        "location": "",
+                        "choices": [],
+                    },
+                ],
+            },
+            status.HTTP_400_BAD_REQUEST,
+            {
+                "root_step": [
+                    "Root step must be in steps.",
+                ],
+            },
+            id="root_step_not_in_steps",
+        ),
+        pytest.param(
+            {
+                "title": "Time Travel Adventure",
+                "description": "A simple story",
+                "root_step": 1,
+                "steps": [
+                    {
+                        "id": 1,
+                        "title": "step 1",
+                        "description": "",
+                        "location": "",
+                        "choices": [
+                            {"text": "Go to 2", "next": 2},
+                        ],
+                    },
+                ],
+            },
+            status.HTTP_400_BAD_REQUEST,
+            {},
+            id="choices_point_to_unknown_steps",
+        ),
+    ),
+)
+@pytest.mark.django_db
+def test_scenario_viewset_create_errors(
+    auth_client1, expected_status_code, expected_response_data, payload
+):
+    response = auth_client1.post(
+        reverse("scenario-list"),
+        data=payload,
+    )
+
+    assert (response.status_code, response.json()) == (
+        expected_status_code,
+        expected_response_data,
+    )
 
 
 def test_scenario_viewset_update_success():
