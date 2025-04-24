@@ -122,8 +122,8 @@ def test_scenario_viewset_retrieve_errors(anon_client, scenario_fixture, pk):
 
 
 @pytest.mark.django_db
-def test_scenario_viewset_create_success(auth_client1, user1):
-    response = auth_client1.post(
+def test_scenario_viewset_create_success(auth_client, user1):
+    response = auth_client.post(
         reverse("scenario-list"),
         data=SCENARIO_CREATE_PAYLOAD,
         format="json",
@@ -335,9 +335,9 @@ def test_scenario_viewset_create_success(auth_client1, user1):
 )
 @pytest.mark.django_db
 def test_scenario_viewset_create_errors(
-    auth_client1, expected_status_code, expected_response_data, payload
+    auth_client, expected_status_code, expected_response_data, payload
 ):
-    response = auth_client1.post(
+    response = auth_client.post(
         reverse("scenario-list"),
         data=payload,
         format="json",

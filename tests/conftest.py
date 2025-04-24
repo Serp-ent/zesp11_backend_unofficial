@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from model_bakery import baker
 from rest_framework.test import APIClient
 
-from gotale.models import Choice, Game, Location, Scenario, Session, Step
+from gotale.models import Choice, Game, Location, Scenario, Step
 
 User = get_user_model()
 
@@ -49,9 +49,9 @@ def admin_client(admin_user):
 
 
 @pytest.fixture
-def auth_client1(user1):
+def auth_client(users_fixture):
     client = APIClient()
-    client.force_authenticate(user=user1)
+    client.force_authenticate(user=users_fixture[0])
     return client
 
 
@@ -104,20 +104,16 @@ def create_game(db, user1, scenario_setup):
         scenario=scenario_setup["scenario"],
         current_step=scenario_setup["step1"],
     )
-    # Simulate auto-created session and assign user
-    session = Session.objects.create(game=game, is_active=True)
-    session.user = user1
-    session.save()
     return game
 
 
 @pytest.fixture
 @pytest.mark.django_db
-def scenario_fixture(user1):
+def scenario_fixture(users_fixture):
     scenario = baker.make(
         Scenario,
         id="01234567-89ab-cdef-0123-000000000000",
-        author=user1,
+        author=users_fixture[0],
         title="Test Scenario",
         description="Test Description",
         root_step=None,
@@ -163,3 +159,37 @@ def scenario_fixture(user1):
     ]
 
     return scenario
+
+
+@pytest.fixture
+@pytest.mark.django_db
+def users_fixture():
+    user1 = baker.make(
+        User,
+        id="01234567-89ab-cdef-0123-000000000001",
+        username="jacekplacek",
+        password="password123",
+        email="jacek@example.com",
+        first_name="Jacek",
+        last_name="Placek",
+    )
+    user2 = baker.make(
+        User,
+        id="01234567-89ab-cdef-0123-000000000002",
+        username="marekpieczarek",
+        password="password123",
+        email="marek@example.com",
+        first_name="Marek",
+        last_name="Pieczarek",
+    )
+    user3 = baker.make(
+        User,
+        id="01234567-89ab-cdef-0123-000000000003",
+        username="andrzejkowalski",
+        password="password123",
+        email="andrzej@example.com",
+        first_name="Andrzej",
+        last_name="Kowalski",
+    )
+
+    return [user1, user2, user3]

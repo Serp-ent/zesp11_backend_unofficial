@@ -3,7 +3,6 @@ import uuid
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.utils import timezone
 from django_extensions.db.models import (
     TimeStampedModel,
     TitleDescriptionModel,
@@ -124,36 +123,16 @@ class Game(BaseModel):
 
     @property
     def status(self) -> str:
-        if self.end is None:
+        if self.current_step.choices is None:
             return "running"
         return "ended"
 
-    @property
-    def total_playtime(self):
-        return sum((s.duration for s in self.sessions.all()), timezone.timedelta())
-
     def __str__(self):
-        return f"{self.scenario.name} played by {self.user.username}"
-
-
-class Session(models.Model):
-    game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name="sessions")
-    start = models.DateTimeField(auto_now=True)
-    end = models.DateTimeField(null=True, blank=True)
-    is_active = models.BooleanField(default=True)
-
-    @property
-    def duration(self):
-        return (self.end or timezone.now()) - self.start
-
-    def __str__(self):
-        return f"session for {self.game.id} ({self.is_active})"
+        return f"{self.scenario.title} played by {self.user.username}"
 
 
 class History(TimeStampedModel):
-    session = models.ForeignKey(
-        "Session", on_delete=models.CASCADE, related_name="decisions"
-    )
+    game = models.ForeignKey("Game", on_delete=models.CASCADE, related_name="decisions")
     choice = models.ForeignKey(Choice, on_delete=models.SET_NULL, null=True, blank=True)
     step = models.ForeignKey(
         Step,
@@ -164,7 +143,7 @@ class History(TimeStampedModel):
     )
 
     def __str__(self):
-        return f"History for {self.session}"
+        return f"History for {self.game}"
 
     class Meta:
         ordering = ["-created"]

@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from django.contrib.auth import get_user_model
-from rest_framework import generics, permissions, status, viewsets
+from rest_framework import generics, mixins, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -12,7 +12,7 @@ from core.serializers import (
     UserUpdateSerializer,
 )
 from gotale import permissions as gotalePermissions
-from gotale.models import Choice, Game, History, Location, Scenario, Session
+from gotale.models import Choice, Game, History, Location, Scenario
 from gotale.serializers import (
     GameCreateSerializer,
     GameSerializer,
@@ -99,10 +99,15 @@ class ScenarioViewset(viewsets.ModelViewSet):
         return serializer.save(author=self.request.user)
 
 
-class GameViewsets(viewsets.ModelViewSet):
+class GameViewsets(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet,
+):
     queryset = Game.objects.all()
     serializer_class = GameSerializer
-    permission_classes = [gotalePermissions.isAuthenticatedOrAdmin]
+    # permission_classes = [gotalePermissions.isAuthenticatedOrAdmin]
     serializers_by_action = {
         "create": GameCreateSerializer,
     }
@@ -110,19 +115,11 @@ class GameViewsets(viewsets.ModelViewSet):
     def get_serializer_class(self):
         return self.serializers_by_action.get(self.action, GameSerializer)
 
-    def get_permissions(self):
-        if self.action in ["current_step", "end_session"]:
-            return [gotalePermissions.IsInGame()]
-
-        return super().get_permissions()
-
     def perform_create(self, serializer):
         """Auto-create first session on game creation"""
         game = serializer.save(user=self.request.user)
         game.current_step = game.scenario.root_step
         game.save()
-
-        # Session.objects.create(game=game, is_active=True)
 
         return game
 
@@ -159,10 +156,6 @@ class GameViewsets(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        active_session = game.sessions.filter(is_active=True).first()
-        if not active_session:
-            active_session = Session.objects.create(game=game, is_active=True)
-
         serializer = MakeChoiceSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         choice_id = serializer.validated_data["choice_id"]
@@ -186,7 +179,6 @@ class GameViewsets(viewsets.ModelViewSet):
 
         # Record history
         History.objects.create(
-            session=active_session,
             choice=choice,
             step=original_step,
         )

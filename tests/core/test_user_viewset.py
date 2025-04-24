@@ -3,9 +3,7 @@ from unittest.mock import ANY
 import pytest
 from django.contrib.auth import get_user_model
 from django.urls import reverse
-from model_bakery import baker
 from rest_framework import status
-from rest_framework.test import APIClient
 
 User = get_user_model()
 
@@ -38,48 +36,6 @@ USER_LIST = [
         "modified": ANY,
     },
 ]
-
-
-@pytest.fixture
-@pytest.mark.django_db
-def users_fixture():
-    user1 = baker.make(
-        User,
-        id="01234567-89ab-cdef-0123-000000000001",
-        username="jacekplacek",
-        password="password123",
-        email="jacek@example.com",
-        first_name="Jacek",
-        last_name="Placek",
-    )
-    user2 = baker.make(
-        User,
-        id="01234567-89ab-cdef-0123-000000000002",
-        username="marekpieczarek",
-        password="password123",
-        email="marek@example.com",
-        first_name="Marek",
-        last_name="Pieczarek",
-    )
-    user3 = baker.make(
-        User,
-        id="01234567-89ab-cdef-0123-000000000003",
-        username="andrzejkowalski",
-        password="password123",
-        email="andrzej@example.com",
-        first_name="Andrzej",
-        last_name="Kowalski",
-    )
-
-    return [user1, user2, user3]
-
-
-@pytest.fixture
-def auth_client(users_fixture):
-    client = APIClient()
-    client.force_authenticate(user=users_fixture[0])
-
-    return client
 
 
 @pytest.mark.django_db
