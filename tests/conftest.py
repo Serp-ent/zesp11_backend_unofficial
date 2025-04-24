@@ -128,10 +128,20 @@ def scenario_fixture(users_fixture):
     scenario.root_step = root_step
     scenario.save()
 
-    child_steps = baker.make(
-        Step,
-        scenario=scenario,
-        _quantity=2,
+    child_steps = Step.objects.bulk_create(
+        [
+            baker.prepare(
+                Step,
+                scenario=scenario,
+                title="Child 1 (ended)",
+                id="01234567-89ab-aaaa-0123-123000000001",
+            ),
+            baker.prepare(
+                Step,
+                scenario=scenario,
+                id="01234567-89ab-aaaa-0123-123000000002",
+            ),
+        ]
     )
 
     choice_data = [

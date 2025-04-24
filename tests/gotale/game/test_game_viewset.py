@@ -182,6 +182,17 @@ def games_fixture(scenario_fixture, users_fixture):
     )
 
 
+@pytest.fixture
+def game_ended_fixture(games_fixture, scenario_fixture):
+    game = games_fixture[0]
+    game.current_step = game.current_step.choices.get(
+        pk="01234567-89ab-cdef-0123-000000000011"
+    ).next
+
+    game.save()
+    return game
+
+
 @pytest.mark.django_db
 def test_game_viewset_list_success(auth_client, games_fixture):
     response = auth_client.get(reverse("game-list"))
@@ -408,19 +419,124 @@ def test_game_viewset_current_step_get_success(auth_client, games_fixture):
     )
 
 
-# TODO: invalid choice
+@pytest.mark.django_db
+def test_game_viewset_current_step_get_errors(auth_client, game_ended_fixture):
+    response = auth_client.get(
+        reverse("game-current-step", kwargs={"pk": game_ended_fixture.id})
+    )
+
+    assert game_ended_fixture.status == "ended"
+    assert (response.status_code, response.json()) == (
+        status.HTTP_200_OK,
+        {
+            "description": None,
+            "location": None,
+            "title": "Child 1 (ended)",
+            "choices": [],
+            "id": str(game_ended_fixture.current_step.id),
+        },
+    )
+
+
+@pytest.mark.django_db
+def test_game_viewset_current_step_post_success(auth_client, games_fixture):
+    response = auth_client.post(
+        reverse("game-current-step", kwargs={"pk": games_fixture[0].id}),
+        data={
+            "choice": "01234567-89ab-cdef-0123-000000000011",
+        },
+    )
+
+    assert (response.status_code, response.json()) == (
+        status.HTTP_200_OK,
+        {
+            "description": None,
+            "location": None,
+            "title": "Child 1 (ended)",
+            "choices": [],
+            "id": "01234567-89ab-aaaa-0123-123000000001",
+        },
+    )
+    assert Game.objects.get(id=games_fixture[0].id).status == "ended"
+
+
+@pytest.mark.parametrize(
+    "pk, payload, expected_status_code, expected_response",
+    (
+        pytest.param(
+            "1ede802f-d69b-41d5-b370-999999999999",
+            {},
+            status.HTTP_404_NOT_FOUND,
+            {
+                "detail": "No Game matches the given query.",
+            },
+            id="game-dont-exist",
+        ),
+        pytest.param(
+            "1ede802f-d69b-41d5-b370-000000000001",
+            {},
+            status.HTTP_400_BAD_REQUEST,
+            {
+                "choice": [
+                    "This field is required.",
+                ],
+            },
+            id="empty-body",
+        ),
+        pytest.param(
+            "1ede802f-d69b-41d5-b370-000000000001",
+            {},
+            status.HTTP_400_BAD_REQUEST,
+            {
+                "choice": [
+                    "This field is required.",
+                ],
+            },
+            id="empty-body",
+        ),
+        pytest.param(
+            "1ede802f-d69b-41d5-b370-000000000001",
+            {
+                "choice": "01234567-89ab-cdef-0123-999999999999",
+            },
+            status.HTTP_404_NOT_FOUND,
+            {
+                "detail": "No Choice matches the given query.",
+            },
+            id="invalid-choice",
+        ),
+        pytest.param(
+            "1ede802f-d69b-41d5-b370-000000000000",
+            {
+                "choice": "01234567-89ab-cdef-0123-000000000011",
+            },
+            status.HTTP_400_BAD_REQUEST,
+            {
+                "error": "This game has already ended",
+            },
+            id="ended-game",
+        ),
+    ),
+)
 # TODO: user that is not in the game
-# TODO: step_get on game ended
-def test_game_viewset_current_step_get_errors():
-    pass
+@pytest.mark.django_db
+def test_game_viewset_current_step_post_errors(
+    auth_client,
+    game_ended_fixture,
+    games_fixture,
+    payload,
+    expected_status_code,
+    expected_response,
+    pk,
+):
+    response = auth_client.post(
+        reverse("game-current-step", kwargs={"pk": pk}),
+        data=payload,
+    )
 
-
-def test_game_viewset_current_step_post_success():
-    pass
-
-
-# TODO: invalid choice
-# TODO: user that is not in the game
-# TODO: step_post on game ended
-def test_game_viewset_current_step_post_errors():
-    pass
+    assert (response.status_code, response.json()) == (
+        expected_status_code,
+        expected_response,
+    )
+    # TODO: check with db that changes were not made
+    # assert Game.objects.get(id=pk) == games_fixture

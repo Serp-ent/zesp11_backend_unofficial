@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -123,12 +124,26 @@ class Game(BaseModel):
 
     @property
     def status(self) -> str:
-        if self.current_step.choices is None:
-            return "running"
-        return "ended"
+        if self.current_step.choices.count() == 0:
+            return "ended"
+        return "running"
 
     def __str__(self):
         return f"{self.scenario.title} played by {self.user.username}"
+
+    def make_decision(self, choice):
+        if self.status == "ended":
+            raise ValidationError("Game is not active.")
+
+        if choice.step != self.current_step:
+            raise ValidationError("Invalid choice for current step.")
+
+        # TODO: record decision using History custom manager
+
+        self.current_step = choice.next
+        if self.current_step.is_last_step():
+            self.end = datetime.now()
+        self.save()
 
 
 class History(TimeStampedModel):

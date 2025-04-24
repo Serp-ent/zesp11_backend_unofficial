@@ -196,5 +196,8 @@ class GameCreateSerializer(serializers.ModelSerializer):
 #         fields = "-all"
 
 
-class MakeChoiceSerializer(serializers.Serializer):
-    choice_id = serializers.IntegerField(required=True)
+class MakeGameDecisionSerializer(serializers.Serializer):
+    choice = serializers.UUIDField()
+
+    class Meta:
+        fields = ("choice",)

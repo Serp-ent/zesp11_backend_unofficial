@@ -6,6 +6,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from gotale.models import Choice, Scenario, Step
+from tests.core.test_user_viewset import USER_LIST
 from tests.utils import is_valid_uuid4
 
 User = get_user_model()
@@ -66,7 +67,9 @@ SCENARIO_CREATE_PAYLOAD = {
 
 
 @pytest.mark.django_db
-def test_scenario_viewset_retrieve_success(scenario_fixture, anon_client, user1):
+def test_scenario_viewset_retrieve_success(
+    scenario_fixture, anon_client, users_fixture
+):
     response = anon_client.get(
         reverse("scenario-detail", kwargs={"pk": scenario_fixture.pk})
     )
@@ -75,11 +78,11 @@ def test_scenario_viewset_retrieve_success(scenario_fixture, anon_client, user1)
         status.HTTP_200_OK,
         {
             "author": {
-                "email": user1.email,
-                "first_name": user1.first_name,
-                "id": str(user1.id),
-                "last_name": user1.last_name,
-                "username": user1.username,
+                "email": users_fixture[0].email,
+                "first_name": users_fixture[0].first_name,
+                "id": str(users_fixture[0].id),
+                "last_name": users_fixture[0].last_name,
+                "username": users_fixture[0].username,
                 "created": ANY,
                 "modified": ANY,
             },
@@ -122,7 +125,7 @@ def test_scenario_viewset_retrieve_errors(anon_client, scenario_fixture, pk):
 
 
 @pytest.mark.django_db
-def test_scenario_viewset_create_success(auth_client, user1):
+def test_scenario_viewset_create_success(auth_client):
     response = auth_client.post(
         reverse("scenario-list"),
         data=SCENARIO_CREATE_PAYLOAD,
@@ -132,15 +135,7 @@ def test_scenario_viewset_create_success(auth_client, user1):
     assert (response.status_code, response.json()) == (
         status.HTTP_201_CREATED,
         {
-            "author": {
-                "created": ANY,
-                "email": user1.email,
-                "first_name": "",
-                "id": str(user1.id),
-                "last_name": "",
-                "modified": ANY,
-                "username": user1.username,
-            },
+            "author": USER_LIST[2],
             "created": ANY,
             "description": "A simple story",
             "id": ANY,

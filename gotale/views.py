@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 from rest_framework import generics, mixins, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.request import Request
@@ -12,12 +13,12 @@ from core.serializers import (
     UserUpdateSerializer,
 )
 from gotale import permissions as gotalePermissions
-from gotale.models import Choice, Game, History, Location, Scenario
+from gotale.models import Choice, Game, Location, Scenario
 from gotale.serializers import (
     GameCreateSerializer,
     GameSerializer,
     LocationSerializer,
-    MakeChoiceSerializer,
+    MakeGameDecisionSerializer,
     ScenarioCreateSerializer,
     ScenarioSerializer,
     StepSerializer,
@@ -156,32 +157,11 @@ class GameViewsets(
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        serializer = MakeChoiceSerializer(data=request.data)
+        serializer = MakeGameDecisionSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        choice_id = serializer.validated_data["choice_id"]
+        choice = get_object_or_404(Choice, pk=serializer.validated_data["choice"])
 
-        try:
-            choice = game.current_step.choices.get(id=choice_id)
-        except Choice.DoesNotExist:
-            return Response(
-                {"errors": "Invalid choice ID for current step"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        # Update game state
-        original_step = game.current_step
-        game.current_step = choice.next
-
-        if game.current_step.is_last_step():
-            game.end = datetime.now()
-
-        game.save()
-
-        # Record history
-        History.objects.create(
-            choice=choice,
-            step=original_step,
-        )
+        game.make_decision(choice)
 
         return Response(
             StepSerializer(game.current_step).data,
