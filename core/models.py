@@ -17,6 +17,9 @@ class BaseModel(TimeStampedModel):
     # TODO: created by
     # TODO: updated by
 
+    def __repr__(self):
+        return f"<{self._meta.label}(id='{str(self.pk)}')>"
+
     class Meta:
         abstract = True
         ordering = ["-created"]
