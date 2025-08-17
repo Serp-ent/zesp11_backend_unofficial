@@ -11,7 +11,7 @@ USER_LIST = [
     {
         "email": "andrzej@example.com",
         "first_name": "Andrzej",
-        "id": "01234567-89ab-cdef-0123-000000000003",
+        "id": "01234567-89ab-cdef-0123-100000000003",
         "last_name": "Kowalski",
         "username": "andrzejkowalski",
         "created": ANY,
@@ -20,7 +20,7 @@ USER_LIST = [
     {
         "email": "marek@example.com",
         "first_name": "Marek",
-        "id": "01234567-89ab-cdef-0123-000000000002",
+        "id": "01234567-89ab-cdef-0123-100000000002",
         "last_name": "Pieczarek",
         "username": "marekpieczarek",
         "created": ANY,
@@ -29,7 +29,7 @@ USER_LIST = [
     {
         "email": "jacek@example.com",
         "first_name": "Jacek",
-        "id": "01234567-89ab-cdef-0123-000000000001",
+        "id": "01234567-89ab-cdef-0123-100000000001",
         "last_name": "Placek",
         "username": "jacekplacek",
         "created": ANY,

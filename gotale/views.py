@@ -2,7 +2,8 @@ from datetime import datetime
 
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from rest_framework import generics, mixins, permissions, status, viewsets
+from drf_rw_serializers import generics
+from rest_framework import mixins, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -20,7 +21,8 @@ from gotale.serializers import (
     LocationSerializer,
     MakeGameDecisionSerializer,
     ScenarioCreateSerializer,
-    ScenarioSerializer,
+    ScenarioReadSerializer,
+    ScenarioWriteSerializer,
     StepSerializer,
 )
 
@@ -69,30 +71,30 @@ class LocationViewset(viewsets.ModelViewSet):
     serializer_class = LocationSerializer
 
 
-class ScenarioViewset(viewsets.ModelViewSet):
+class ScenarioViewset(viewsets.ModelViewSet, generics.RetrieveUpdateDestroyAPIView):
     queryset = Scenario.objects.all()
+    read_serializer_class = ScenarioReadSerializer
 
-    serializer_class_by_action = {
-        "create": ScenarioCreateSerializer,
-    }
-
-    def get_serializer_class(self):
-        return self.serializer_class_by_action.get(self.action, ScenarioSerializer)
+    def get_write_serializer_class(self):
+        if self.action == "create":
+            return ScenarioCreateSerializer
+        return ScenarioWriteSerializer
 
     def get_permissions(self):
         if self.action == "create":
             return [permissions.IsAuthenticated()]
 
-        return [gotalePermissions.IsOwnerOrAdminOrReadOnly()]
+        # return [gotalePermissions.IsOwnerOrAdminOrReadOnly()]
+        return []
 
     def create(self, request, *args, **kwargs):
-        serializer_create = self.get_serializer(data=request.data)
+        serializer_create = self.get_write_serializer(data=request.data)
         serializer_create.is_valid(raise_exception=True)
 
         instance = self.perform_create(serializer_create)
 
         return Response(
-            ScenarioSerializer(instance, context=self.get_serializer_context()).data,
+            self.get_read_serializer(instance).data,
             status=status.HTTP_201_CREATED,
         )
 

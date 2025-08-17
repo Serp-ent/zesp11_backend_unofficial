@@ -176,7 +176,7 @@ def scenario_fixture(users_fixture):
 def users_fixture():
     user1 = baker.make(
         User,
-        id="01234567-89ab-cdef-0123-000000000001",
+        id="01234567-89ab-cdef-0123-100000000001",
         username="jacekplacek",
         password="password123",
         email="jacek@example.com",
@@ -185,7 +185,7 @@ def users_fixture():
     )
     user2 = baker.make(
         User,
-        id="01234567-89ab-cdef-0123-000000000002",
+        id="01234567-89ab-cdef-0123-100000000002",
         username="marekpieczarek",
         password="password123",
         email="marek@example.com",
@@ -194,7 +194,7 @@ def users_fixture():
     )
     user3 = baker.make(
         User,
-        id="01234567-89ab-cdef-0123-000000000003",
+        id="01234567-89ab-cdef-0123-100000000003",
         username="andrzejkowalski",
         password="password123",
         email="andrzej@example.com",

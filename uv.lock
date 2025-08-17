@@ -282,6 +282,18 @@ wheels = [
 ]
 
 [[package]]
+name = "drf-rw-serializers"
+version = "1.4.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "djangorestframework" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/8c/64/3313185645d95a7c1fb4679c3e8381aa8a661047602c79cdb938dd6b59f3/drf_rw_serializers-1.4.0.tar.gz", hash = "sha256:2e2319056b53e6b97ed6e741b70ed94d5cd14150544e66ef4ad7a0fdfa277bbe", size = 5174, upload-time = "2024-06-06T10:42:12.288Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/35/fe/930e8d2d982289f8ea5e0a190433251a31c21dd5d52049e309a4e9741b35/drf_rw_serializers-1.4.0-py3-none-any.whl", hash = "sha256:6828c397653c80c05db9913845fa4da3a4953af7044728cc6d671a4e08465e22", size = 6714, upload-time = "2024-06-06T10:42:09.839Z" },
+]
+
+[[package]]
 name = "drf-spectacular"
 version = "0.28.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1172,6 +1184,7 @@ dependencies = [
     { name = "djangorestframework" },
     { name = "djangorestframework-simplejwt" },
     { name = "djangorestframework-stubs" },
+    { name = "drf-rw-serializers" },
     { name = "drf-spectacular" },
     { name = "executing" },
     { name = "factory-boy" },
@@ -1260,6 +1273,7 @@ requires-dist = [
     { name = "djangorestframework", specifier = "==3.15.2" },
     { name = "djangorestframework-simplejwt", specifier = "==5.4.0" },
     { name = "djangorestframework-stubs", specifier = "==3.15.3" },
+    { name = "drf-rw-serializers", specifier = ">=1.4.0" },
     { name = "drf-spectacular", specifier = ">=0.28.0" },
     { name = "executing", specifier = "==2.2.0" },
     { name = "factory-boy", specifier = "==3.3.3" },

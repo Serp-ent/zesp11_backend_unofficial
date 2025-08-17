@@ -33,7 +33,7 @@ class StepSerializer(serializers.ModelSerializer):
         fields = ["id", "title", "description", "location", "choices"]
 
 
-class ScenarioSerializer(BaseModelSerializer):
+class ScenarioReadSerializer(BaseModelSerializer):
     author = UserSerializer(read_only=True)
     root_step = StepSerializer()
 
@@ -64,7 +64,7 @@ class StepCreateSerializer(serializers.ModelSerializer):
         fields = ["id", "title", "description", "location", "choices"]
 
 
-class ScenarioCreateSerializer(BaseModelSerializer):
+class ScenarioWriteSerializer(BaseModelSerializer):
     steps = StepCreateSerializer(many=True)
 
     class Meta(BaseModelSerializer.Meta):
@@ -118,11 +118,7 @@ class ScenarioCreateSerializer(BaseModelSerializer):
 
         return value
 
-    @transaction.atomic
-    def create(self, validated_data):
-        steps_data = validated_data.pop("steps")
-        scenario = Scenario.objects.create(**validated_data)
-
+    def _handle_steps_field(self, scenario, steps_data):
         front_id_to_step = {}  # Map front-end IDs to back-end IDs
         steps_to_create = []
         choices_to_create = []
@@ -149,7 +145,20 @@ class ScenarioCreateSerializer(BaseModelSerializer):
 
         Choice.objects.bulk_create(choices_to_create)
 
+    @transaction.atomic
+    def create(self, validated_data):
+        steps_data = validated_data.pop("steps")
+        scenario = Scenario.objects.create(**validated_data)
+
+        self._handle_steps_field(scenario, steps_data)
         return scenario
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        if steps_data := validated_data.get("steps"):
+            self._handle_steps_field(self.scenario, steps_data)
+
+        return super().update(instance, validated_data)
 
     def get_step_mapping(self, steps):
         # Oneliner unsafe (allows repeating id)
@@ -166,10 +175,14 @@ class ScenarioCreateSerializer(BaseModelSerializer):
         return step_choices, errors
 
 
+class ScenarioCreateSerializer(ScenarioWriteSerializer):
+    steps = StepCreateSerializer(many=True, required=True)
+
+
 class GameSerializer(BaseModelSerializer):
     current_step = StepSerializer(read_only=True)
     user = UserSerializer(read_only=True)
-    scenario = ScenarioSerializer(read_only=True)
+    scenario = ScenarioReadSerializer(read_only=True)
 
     class Meta(BaseModelSerializer.Meta):
         model = Game

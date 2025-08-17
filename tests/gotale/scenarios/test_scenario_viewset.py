@@ -3,6 +3,7 @@ from unittest.mock import ANY
 import pytest
 from django.contrib.auth import get_user_model
 from django.urls import reverse
+from model_bakery import baker
 from rest_framework import status
 
 from gotale.models import Choice, Scenario, Step
@@ -10,6 +11,36 @@ from tests.core.test_user_viewset import USER_LIST
 from tests.utils import is_valid_uuid4
 
 User = get_user_model()
+
+SCENARIOS_LIST = [
+    {
+        "author": USER_LIST[2],
+        "created": ANY,
+        "description": "A simple story",
+        "id": "09bf5752-190f-4b06-84d6-100000000001",
+        "modified": ANY,
+        "root_step": None,
+        "title": "scenario-title-1",
+    },
+    {
+        "author": USER_LIST[1],
+        "created": ANY,
+        "description": "A simple story",
+        "id": "09bf5752-190f-4b06-84d6-100000000002",
+        "modified": ANY,
+        "root_step": None,
+        "title": "scenario-title-2",
+    },
+    {
+        "author": USER_LIST[0],
+        "created": ANY,
+        "description": "A simple story",
+        "id": "09bf5752-190f-4b06-84d6-100000000003",
+        "modified": ANY,
+        "root_step": None,
+        "title": "scenario-title-3",
+    },
+]
 
 SCENARIO_CREATE_PAYLOAD = {
     "title": "Time Travel Adventure",
@@ -57,57 +88,37 @@ SCENARIO_CREATE_PAYLOAD = {
 }
 
 
-# @pytest.mark.django_db
-# def test_scenario_viewset_list_success(anon_client, user1):
-#     Scenario.objects.create(title="Test Scenario", author=user1)
-#     url = reverse("scenario-list")
-#     response = anon_client.get(url)
-#     assert response.status_code == status.HTTP_200_OK
-#     assert len(response.data) > 0
+@pytest.fixture
+def scenario_fixtures(users_fixture):
+    return Scenario.objects.bulk_create(
+        baker.prepare(
+            Scenario,
+            **(SCENARIO_CREATE_PAYLOAD | {"title": baker.seq("scenario-title-")}),
+            id=baker.seq("09bf5752-190f-4b06-84d6-10000000000"),
+            author=iter(users_fixture),
+            _quantity=3,
+        )
+    )
 
 
 @pytest.mark.django_db
-def test_scenario_viewset_retrieve_success(
-    scenario_fixture, anon_client, users_fixture
-):
+def test_scenario_viewset_list_success(anon_client, scenario_fixtures):
+    response = anon_client.get(reverse("scenario-list"))
+    assert (response.status_code, response.json()) == (
+        status.HTTP_200_OK,
+        SCENARIOS_LIST,
+    )
+
+
+@pytest.mark.django_db
+def test_scenario_viewset_retrieve_success(anon_client, scenario_fixtures):
     response = anon_client.get(
-        reverse("scenario-detail", kwargs={"pk": scenario_fixture.pk})
+        reverse("scenario-detail", kwargs={"pk": scenario_fixtures[0].pk})
     )
 
     assert (response.status_code, response.json()) == (
         status.HTTP_200_OK,
-        {
-            "author": {
-                "email": users_fixture[0].email,
-                "first_name": users_fixture[0].first_name,
-                "id": str(users_fixture[0].id),
-                "last_name": users_fixture[0].last_name,
-                "username": users_fixture[0].username,
-                "created": ANY,
-                "modified": ANY,
-            },
-            "created": ANY,
-            "description": "Test Description",
-            "id": scenario_fixture.id,
-            "modified": ANY,
-            "root_step": {
-                "description": None,
-                "id": "01234567-89ab-cdef-0123-111111111111",
-                "choices": [
-                    {
-                        "id": "01234567-89ab-cdef-0123-000000000011",
-                        "text": "Go to child 1",
-                    },
-                    {
-                        "id": "01234567-89ab-cdef-0123-000000000022",
-                        "text": "Go to child 2",
-                    },
-                ],
-                "location": None,
-                "title": "Root Step",
-            },
-            "title": "Test Scenario",
-        },
+        SCENARIOS_LIST[0],
     )
 
 
@@ -332,6 +343,8 @@ def test_scenario_viewset_create_success(auth_client):
 def test_scenario_viewset_create_errors(
     auth_client, expected_status_code, expected_response_data, payload
 ):
+    db_before = tuple(Scenario.objects.all())
+
     response = auth_client.post(
         reverse("scenario-list"),
         data=payload,
@@ -342,11 +355,44 @@ def test_scenario_viewset_create_errors(
         expected_status_code,
         expected_response_data,
     )
+    assert tuple(Scenario.objects.all()) == db_before
 
 
-def test_scenario_viewset_update_success():
-    # TODO: replace whole scenario
-    pass
+@pytest.mark.parametrize("method", ("put", "patch"))
+@pytest.mark.django_db
+def test_scenario_viewset_update_success(method, auth_client, scenario_fixtures):
+    url = reverse("scenario-detail", kwargs={"pk": scenario_fixtures[0].pk})
+    response = getattr(auth_client, method)(
+        url,
+        data={
+            "title": "updated-scenario-1-title",
+            "steps": [
+                {
+                    "id": 1,
+                    "title": "step 1",
+                    "choices": [
+                        {"text": "Go to 2", "next": 2},
+                        {"text": "Go to 3", "next": 3},
+                    ],
+                },
+                {
+                    "id": 2,
+                    "title": "step 2",
+                    "choices": [],
+                },
+                {
+                    "id": 3,
+                    "title": "step 3",
+                    "choices": [],
+                },
+            ],
+        },
+    )
+
+    assert (response.status_code, response.json()) == (
+        status.HTTP_200_OK,
+        SCENARIOS_LIST[0] | {"title": "updated-scenario-1-title"},
+    )
 
 
 def test_scenario_viewset_update_errors():
