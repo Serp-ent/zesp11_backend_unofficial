@@ -20,6 +20,7 @@ dependencies = [
     "djangorestframework==3.15.2",
     "djangorestframework-simplejwt==5.4.0",
     "djangorestframework-stubs==3.15.3",
+    "drf-spectacular>=0.28.0",
     "executing==2.2.0",
     "factory-boy==3.3.3",
     "faker==36.1.1",
