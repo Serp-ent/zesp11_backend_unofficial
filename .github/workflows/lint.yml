@@ -1,22 +1,12 @@
+name: "lint"
+
 on: [push, pull_request]
 
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install black ruff 
-
-      - name: Run Black
-        run: black --check --config pyproject.toml .
-
-      - name: Run Ruff
-        run: ruff check . --config pyproject.toml
+    - uses: actions/checkout@v4
+    - uses: astral-sh/ruff-action@v3
+    - run: ruff check --fix
+    - run: ruff format
