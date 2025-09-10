@@ -10,12 +10,18 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+import tomllib
 from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+pyproject = BASE_DIR / "pyproject.toml"
+with pyproject.open("rb") as f:
+    pyproject_data = tomllib.load(f)
+
+PACKAGE_VERSION = pyproject_data["project"]["version"]
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -59,8 +65,7 @@ REST_FRAMEWORK = {
 SPECTACULAR_SETTINGS = {
     "TITLE": "GoTale API",
     "DESCRIPTION": "API for zesp11 GoTale app.",
-    # TODO: sync version with the __init__ or pyproject.toml
-    "VERSION": "0.1.0",
+    "VERSION": PACKAGE_VERSION,
     "SERVE_INCLUDE_SCHEMA": False,
 }
 
