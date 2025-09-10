@@ -1,7 +1,13 @@
 {
-    "python.testing.pytestArgs": [
-        "."
-    ],
-    "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true
+  "python.testing.pytestArgs": ["."],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true,
+  "python.terminal.activateEnvironment": true,
+  "terminal.integrated.profiles": {
+    "fish": {
+      "path": "/usr/bin/fish",
+      "args": ["--login", "-c", "source .venv/bin/activate.fish"]
+    }
+  },
+  "terminal.integrated.defaultProfile.linux": "fish"
 }
