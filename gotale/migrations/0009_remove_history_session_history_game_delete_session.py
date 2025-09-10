@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("gotale", "0008_alter_game_options_alter_game_id"),
     ]

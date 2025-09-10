@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("gotale", "0005_location_created_location_modified_alter_location_id"),
     ]

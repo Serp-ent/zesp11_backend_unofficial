@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("gotale", "0007_alter_choice_id_alter_step_id"),
     ]

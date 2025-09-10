@@ -83,9 +83,8 @@ class ScenarioCreateSerializer(BaseModelSerializer):
 
         # Create a mapping of step IDs to their choices
         step_choices, errors = self.get_step_mapping(value)
-        if (
-            errors
-        ):  # Check for duplicate step IDs and informa the user only about that in the first place
+        # Check for duplicate step IDs and informa the user only about that in the first place
+        if errors:
             raise serializers.ValidationError(errors)
 
         referenced_ids = set()

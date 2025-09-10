@@ -8,7 +8,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("gotale", "0004_alter_game_options_alter_history_options_and_more"),
     ]
