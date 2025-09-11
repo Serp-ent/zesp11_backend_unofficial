@@ -10,7 +10,7 @@ User = get_user_model()
 
 @pytest.fixture
 @pytest.mark.django_db
-def user1():
+def user1_fixture():
     return baker.make(
         User,
         username="user1",
@@ -42,13 +42,6 @@ def anon_client():
 
 
 @pytest.fixture
-def admin_client(admin_user):
-    client = APIClient()
-    client.force_authenticate(user=admin_user)
-    return client
-
-
-@pytest.fixture
 def auth_client(users_fixture):
     client = APIClient()
     client.force_authenticate(user=users_fixture[0])
@@ -63,14 +56,14 @@ def auth_client2(user2):
 
 
 @pytest.fixture
-def scenario_setup(db, user1):
+def scenario_setup(db, user1_fixture):
     # Create a location
     location = Location.objects.create(
         title="Test Location", latitude=10.0, longitude=20.0
     )
 
     # Create a scenario authored by user1
-    scenario = Scenario.objects.create(title="Test Scenario", author=user1)
+    scenario = Scenario.objects.create(title="Test Scenario", created_by=user1_fixture)
     step1 = Step.objects.create(
         title="Step 1", description="First step", scenario=scenario, location=location
     )
@@ -94,13 +87,13 @@ def scenario_setup(db, user1):
 
 
 @pytest.fixture
-def create_game(db, user1, scenario_setup):
+def create_game(db, user1_fixture, scenario_setup):
     """
     Create a game owned by user1.
     Manually create an active session with session.user = user1.
     """
     game = Game.objects.create(
-        user=user1,
+        user=user1_fixture,
         scenario=scenario_setup["scenario"],
         current_step=scenario_setup["step1"],
     )
@@ -113,7 +106,7 @@ def scenario_fixture(users_fixture):
     scenario = baker.make(
         Scenario,
         id="01234567-89ab-cdef-0123-000000000000",
-        author=users_fixture[0],
+        created_by=users_fixture[0],
         title="Test Scenario",
         description="Test Description",
         root_step=None,
@@ -202,4 +195,4 @@ def users_fixture():
         last_name="Kowalski",
     )
 
-    return [user1, user2, user3]
+    return (user1, user2, user3)

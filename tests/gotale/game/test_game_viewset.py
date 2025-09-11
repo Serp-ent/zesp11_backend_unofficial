@@ -9,9 +9,8 @@ from rest_framework import status
 from gotale.models import Game
 from tests.core.test_user_viewset import USER_LIST
 
-GAMES_LIST = [
+GAME_LIST = [
     {
-        "created": ANY,
         "current_step": {
             "choices": [
                 {
@@ -28,14 +27,14 @@ GAMES_LIST = [
             "location": None,
             "title": "Root Step",
         },
-        "id": "1ede802f-d69b-41d5-b370-000000000002",
-        "modified": ANY,
+        "id": "1ede802f-d69b-41d5-b370-000000000000",
         "scenario": {
-            "author": USER_LIST[2],
-            "created": ANY,
+            "created_by": USER_LIST[0],
+            "created_at": ANY,
             "description": "Test Description",
             "id": "01234567-89ab-cdef-0123-000000000000",
-            "modified": ANY,
+            "modified_at": ANY,
+            "modified_by": None,
             "root_step": {
                 "choices": [
                     {
@@ -57,7 +56,6 @@ GAMES_LIST = [
         "user": USER_LIST[0],
     },
     {
-        "created": ANY,
         "current_step": {
             "choices": [
                 {
@@ -75,13 +73,13 @@ GAMES_LIST = [
             "title": "Root Step",
         },
         "id": "1ede802f-d69b-41d5-b370-000000000001",
-        "modified": ANY,
         "scenario": {
-            "author": USER_LIST[2],
-            "created": ANY,
+            "created_by": USER_LIST[0],
+            "created_at": ANY,
             "description": "Test Description",
             "id": "01234567-89ab-cdef-0123-000000000000",
-            "modified": ANY,
+            "modified_at": ANY,
+            "modified_by": None,
             "root_step": {
                 "choices": [
                     {
@@ -103,7 +101,6 @@ GAMES_LIST = [
         "user": USER_LIST[1],
     },
     {
-        "created": ANY,
         "current_step": {
             "choices": [
                 {
@@ -120,14 +117,14 @@ GAMES_LIST = [
             "location": None,
             "title": "Root Step",
         },
-        "id": "1ede802f-d69b-41d5-b370-000000000000",
-        "modified": ANY,
+        "id": "1ede802f-d69b-41d5-b370-000000000002",
         "scenario": {
-            "author": USER_LIST[2],
-            "created": ANY,
+            "created_by": USER_LIST[0],
+            "created_at": ANY,
             "description": "Test Description",
             "id": "01234567-89ab-cdef-0123-000000000000",
-            "modified": ANY,
+            "modified_at": ANY,
+            "modified_by": None,
             "root_step": {
                 "choices": [
                     {
@@ -197,7 +194,7 @@ def game_ended_fixture(games_fixture, scenario_fixture):
 def test_game_viewset_list_success(auth_client, games_fixture):
     response = auth_client.get(reverse("game-list"))
 
-    assert (response.status_code, response.json()) == (status.HTTP_200_OK, GAMES_LIST)
+    assert (response.status_code, response.json()) == (status.HTTP_200_OK, GAME_LIST)
 
 
 @pytest.mark.django_db
@@ -213,7 +210,7 @@ def test_game_viewset_retrieve_success(auth_client, games_fixture):
 
     assert (response.status_code, response.json()) == (
         status.HTTP_200_OK,
-        GAMES_LIST[2],
+        GAME_LIST[0],
     )
 
 
@@ -235,78 +232,17 @@ def test_game_viewset_create_success(auth_client, users_fixture, scenario_fixtur
 
     assert (response.status_code, response.json()) == (
         status.HTTP_201_CREATED,
-        {
-            "created": ANY,
-            "current_step": {
-                "choices": [
-                    {
-                        "id": "01234567-89ab-cdef-0123-000000000011",
-                        "text": "Go to child 1",
-                    },
-                    {
-                        "id": "01234567-89ab-cdef-0123-000000000022",
-                        "text": "Go to child 2",
-                    },
-                ],
-                "description": None,
-                "id": "01234567-89ab-cdef-0123-111111111111",
-                "location": None,
-                "title": "Root Step",
-            },
-            "scenario": {
-                "author": {
-                    "created": ANY,
-                    "email": users_fixture[0].email,
-                    "first_name": users_fixture[0].first_name,
-                    "id": str(users_fixture[0].id),
-                    "last_name": users_fixture[0].last_name,
-                    "modified": ANY,
-                    "username": users_fixture[0].username,
-                },
-                "created": ANY,
-                "description": "Test Description",
-                "id": str(scenario_fixture.id),
-                "modified": ANY,
-                "root_step": {
-                    "choices": [
-                        {
-                            "id": ANY,
-                            "text": "Go to child 1",
-                        },
-                        {
-                            "id": ANY,
-                            "text": "Go to child 2",
-                        },
-                    ],
-                    "description": None,
-                    "id": scenario_fixture.root_step.id,
-                    "location": None,
-                    "title": "Root Step",
-                },
-                "title": "Test Scenario",
-            },
-            "user": {
-                "created": ANY,
-                "email": users_fixture[0].email,
-                "first_name": users_fixture[0].first_name,
-                "id": str(users_fixture[0].id),
-                "last_name": users_fixture[0].last_name,
-                "modified": ANY,
-                "username": users_fixture[0].username,
-            },
-            "id": ANY,
-            "modified": ANY,
-        },
+        GAME_LIST[0] | {"id": ANY},
     )
 
-    responseJson = response.json()
+    response_json = response.json()
 
-    assert Game.objects.filter(pk=responseJson["id"]).exists()
+    assert Game.objects.filter(pk=response_json["id"]).exists()
     assert (
-        str(Game.objects.get(pk=responseJson["id"]).current_step.id)
+        str(Game.objects.get(pk=response_json["id"]).current_step.id)
         == scenario_fixture.root_step.id
     )
-    assert list(Game.objects.filter(pk=responseJson["id"]).values("user")) == [
+    assert list(Game.objects.filter(pk=response_json["id"]).values("user")) == [
         {
             "user": UUID(users_fixture[0].id),
         }
@@ -351,7 +287,7 @@ def test_game_viewset_create_success(auth_client, users_fixture, scenario_fixtur
 @pytest.mark.django_db
 def test_game_viewset_create_errors(
     auth_client,
-    user1,
+    user1_fixture,
     scenario_fixture,
     data,
     expected_status_code,

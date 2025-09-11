@@ -11,6 +11,60 @@ from tests.utils import is_valid_uuid4
 
 User = get_user_model()
 
+
+SCENARIO_LIST = [
+    {
+        "created_by": USER_LIST[0],
+        "created_at": ANY,
+        "modified_by": None,
+        "modified_at": ANY,
+        "description": "Test Description",
+        "id": "01234567-89ab-cdef-0123-000000000000",
+        "root_step": {
+            "description": None,
+            "id": "01234567-89ab-cdef-0123-111111111111",
+            "choices": [
+                {
+                    "id": "01234567-89ab-cdef-0123-000000000011",
+                    "text": "Go to child 1",
+                },
+                {
+                    "id": "01234567-89ab-cdef-0123-000000000022",
+                    "text": "Go to child 2",
+                },
+            ],
+            "location": None,
+            "title": "Root Step",
+        },
+        "title": "Test Scenario",
+    },
+    {
+        "created_at": ANY,
+        "created_by": USER_LIST[0],
+        "description": "A simple story",
+        "id": "c5970ee6-8837-452b-b851-000000000001",
+        "modified_at": ANY,
+        "modified_by": None,
+        "root_step": {
+            "choices": [
+                {
+                    "id": ANY,
+                    "text": "Go to 2",
+                },
+                {
+                    "id": ANY,
+                    "text": "Go to 3",
+                },
+            ],
+            "description": None,
+            "id": ANY,
+            "location": None,
+            "title": "step 1",
+        },
+        "title": "Time Travel Adventure",
+    },
+]
+
 SCENARIO_CREATE_PAYLOAD = {
     "title": "Time Travel Adventure",
     "description": "A simple story",
@@ -76,38 +130,7 @@ def test_scenario_viewset_retrieve_success(
 
     assert (response.status_code, response.json()) == (
         status.HTTP_200_OK,
-        {
-            "author": {
-                "email": users_fixture[0].email,
-                "first_name": users_fixture[0].first_name,
-                "id": str(users_fixture[0].id),
-                "last_name": users_fixture[0].last_name,
-                "username": users_fixture[0].username,
-                "created": ANY,
-                "modified": ANY,
-            },
-            "created": ANY,
-            "description": "Test Description",
-            "id": scenario_fixture.id,
-            "modified": ANY,
-            "root_step": {
-                "description": None,
-                "id": "01234567-89ab-cdef-0123-111111111111",
-                "choices": [
-                    {
-                        "id": "01234567-89ab-cdef-0123-000000000011",
-                        "text": "Go to child 1",
-                    },
-                    {
-                        "id": "01234567-89ab-cdef-0123-000000000022",
-                        "text": "Go to child 2",
-                    },
-                ],
-                "location": None,
-                "title": "Root Step",
-            },
-            "title": "Test Scenario",
-        },
+        SCENARIO_LIST[0],
     )
 
 
@@ -134,30 +157,7 @@ def test_scenario_viewset_create_success(auth_client):
 
     assert (response.status_code, response.json()) == (
         status.HTTP_201_CREATED,
-        {
-            "author": USER_LIST[2],
-            "created": ANY,
-            "description": "A simple story",
-            "id": ANY,
-            "modified": ANY,
-            "title": "Time Travel Adventure",
-            "root_step": {
-                "id": ANY,
-                "title": "step 1",
-                "choices": [
-                    {
-                        "id": ANY,
-                        "text": "Go to 2",
-                    },
-                    {
-                        "id": ANY,
-                        "text": "Go to 3",
-                    },
-                ],
-                "description": None,
-                "location": ANY,
-            },
-        },
+        SCENARIO_LIST[1] | {"id": ANY},
     )
 
     response_json = response.json()

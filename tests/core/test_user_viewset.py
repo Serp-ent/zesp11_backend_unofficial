@@ -9,13 +9,12 @@ User = get_user_model()
 
 USER_LIST = [
     {
-        "email": "andrzej@example.com",
-        "first_name": "Andrzej",
-        "id": "01234567-89ab-cdef-0123-000000000003",
-        "last_name": "Kowalski",
-        "username": "andrzejkowalski",
-        "created": ANY,
-        "modified": ANY,
+        "email": "jacek@example.com",
+        "first_name": "Jacek",
+        "id": "01234567-89ab-cdef-0123-000000000001",
+        "last_name": "Placek",
+        "username": "jacekplacek",
+        "created_at": ANY,
     },
     {
         "email": "marek@example.com",
@@ -23,17 +22,15 @@ USER_LIST = [
         "id": "01234567-89ab-cdef-0123-000000000002",
         "last_name": "Pieczarek",
         "username": "marekpieczarek",
-        "created": ANY,
-        "modified": ANY,
+        "created_at": ANY,
     },
     {
-        "email": "jacek@example.com",
-        "first_name": "Jacek",
-        "id": "01234567-89ab-cdef-0123-000000000001",
-        "last_name": "Placek",
-        "username": "jacekplacek",
-        "created": ANY,
-        "modified": ANY,
+        "email": "andrzej@example.com",
+        "first_name": "Andrzej",
+        "id": "01234567-89ab-cdef-0123-000000000003",
+        "last_name": "Kowalski",
+        "username": "andrzejkowalski",
+        "created_at": ANY,
     },
 ]
 
@@ -41,24 +38,19 @@ USER_LIST = [
 @pytest.mark.django_db
 def test_user_viewset_create_success(anon_client):
     body = {
-        "username": "marekpieczarek",
+        "username": USER_LIST[0]["username"],
+        "email": USER_LIST[0]["email"],
+        "first_name": USER_LIST[0]["first_name"],
+        "last_name": USER_LIST[0]["last_name"],
         "password": "password123",
-        "email": "marek@pieczarek.com",
     }
     response = anon_client.post(reverse("register"), data=body)
 
     assert (response.status_code, response.json()) == (
         status.HTTP_201_CREATED,
-        {
-            "created": ANY,
-            "modified": ANY,
-            "email": "marek@pieczarek.com",
-            "first_name": "",
-            "id": ANY,
-            "last_name": "",
-            "username": "marekpieczarek",
-        },
+        USER_LIST[0] | {"id": ANY},
     )
+    # TODO: check with the database
 
 
 # TODO: enable password validation
@@ -133,7 +125,7 @@ def test_user_viewset_update_success(auth_client, users_fixture):
         "first_name": "Andrzej",
     }
     response = auth_client.patch(
-        reverse("user-detail", kwargs={"pk": USER_LIST[0]["id"]}),
+        reverse("user-detail", kwargs={"pk": USER_LIST[0]["id"]}), data=data
     )
 
     assert (response.status_code, response.json()) == (

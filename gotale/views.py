@@ -2,7 +2,8 @@ from datetime import datetime
 
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from rest_framework import generics, mixins, permissions, status, viewsets
+from drf_rw_serializers import viewsets
+from rest_framework import generics, mixins, permissions, status
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -17,7 +18,9 @@ from gotale.models import Choice, Game, Location, Scenario
 from gotale.serializers import (
     GameCreateSerializer,
     GameSerializer,
+    LocationCreateSerializer,
     LocationSerializer,
+    LocationUpdateSerializer,
     MakeGameDecisionSerializer,
     ScenarioCreateSerializer,
     ScenarioSerializer,
@@ -27,13 +30,13 @@ from gotale.serializers import (
 User = get_user_model()
 
 
-# Create your views here.
 class UserViewset(viewsets.ModelViewSet):
     queryset = User.objects.all()
     # TODO:
     # permission_classes = [gotalePermissions.UserPermission]
+    read_serializer_class = UserSerializer
 
-    def get_serializer_class(self):
+    def get_write_serializer_class(self):
         if self.action in ["update", "partial_update"]:
             return UserUpdateSerializer
         return UserSerializer
@@ -64,20 +67,20 @@ class UserViewset(viewsets.ModelViewSet):
 
 
 class LocationViewset(viewsets.ModelViewSet):
-    permission_classes = [gotalePermissions.IsAdminOrReadOnly]
     queryset = Location.objects.all()
-    serializer_class = LocationSerializer
+    read_serializer_class = LocationSerializer
+
+    def get_write_serializer_class(self):
+        if self.action == "create":
+            return LocationCreateSerializer
+        return LocationUpdateSerializer
 
 
 class ScenarioViewset(viewsets.ModelViewSet):
     queryset = Scenario.objects.all()
 
-    serializer_class_by_action = {
-        "create": ScenarioCreateSerializer,
-    }
-
-    def get_serializer_class(self):
-        return self.serializer_class_by_action.get(self.action, ScenarioSerializer)
+    read_serializer_class = ScenarioSerializer
+    write_serializer_class = ScenarioCreateSerializer
 
     def get_permissions(self):
         if self.action == "create":
@@ -97,7 +100,7 @@ class ScenarioViewset(viewsets.ModelViewSet):
         )
 
     def perform_create(self, serializer):
-        return serializer.save(author=self.request.user)
+        return serializer.save(created_by=self.request.user)
 
 
 class GameViewsets(

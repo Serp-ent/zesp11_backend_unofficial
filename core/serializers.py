@@ -8,27 +8,38 @@ class BaseModelSerializer(serializers.ModelSerializer):
     """Base serializer for all models."""
 
     class Meta:
-        abstract = None
-        fields = ("id", "created", "modified")
+        abstract = True
+        fields = ("id",)
         read_only_fields = fields
-        extra_kwargs = {
-            "id": {"read_only": True},
-            "created": {"read_only": True},
-            "modified": {"read_only": True},
-        }
 
 
 class UserSerializer(BaseModelSerializer):
-    created = serializers.DateTimeField(source="date_joined", read_only=True)
+    created_at = serializers.DateTimeField(source="date_joined", read_only=True)
 
     class Meta(BaseModelSerializer.Meta):
         model = User
         fields = BaseModelSerializer.Meta.fields + (
+            "created_at",
             "email",
             "first_name",
             "last_name",
             "username",
         )
+
+
+class BaseTrackedModelReadSerializer(BaseModelSerializer):
+    created_by = UserSerializer()
+    modified_by = UserSerializer()
+
+    class Meta(BaseModelSerializer.Meta):
+        abstract = True
+        fields = BaseModelSerializer.Meta.fields + (
+            "created_at",
+            "modified_at",
+            "created_by",
+            "modified_by",
+        )
+        read_only_fields = fields
 
 
 class UserUpdateSerializer(BaseModelSerializer):
@@ -41,7 +52,7 @@ class UserUpdateSerializer(BaseModelSerializer):
             "last_name",
             "username",
         )
-        extra_kwargs = BaseModelSerializer.Meta.extra_kwargs | {
+        extra_kwargs = {
             "password": {"write_only": True},
         }
 

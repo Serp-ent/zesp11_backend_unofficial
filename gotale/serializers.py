@@ -1,22 +1,54 @@
+from datetime import datetime
+
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from rest_framework import serializers
 
-from core.serializers import BaseModelSerializer, UserSerializer
+from core.serializers import (
+    BaseModelSerializer,
+    BaseTrackedModelReadSerializer,
+    UserSerializer,
+)
 from gotale.models import Choice, Game, Location, Scenario, Step
 
 User = get_user_model()
 
 
-class LocationSerializer(BaseModelSerializer):
-    class Meta(BaseModelSerializer.Meta):
+class LocationSerializer(BaseTrackedModelReadSerializer):
+    class Meta(BaseTrackedModelReadSerializer.Meta):
         model = Location
-        fields = BaseModelSerializer.Meta.fields + (
+        fields = BaseTrackedModelReadSerializer.Meta.fields + (
             "title",
             "description",
             "longitude",
             "latitude",
         )
+
+
+class LocationWriteSerializer(serializers.ModelSerializer):
+    class Meta(LocationSerializer.Meta):
+        model = Location
+        fields = (
+            "title",
+            "description",
+            "longitude",
+            "latitude",
+        )
+
+
+class LocationCreateSerializer(LocationWriteSerializer):
+    created_by = serializers.HiddenField(default=serializers.CurrentUserDefault())
+
+    class Meta(LocationWriteSerializer.Meta):
+        fields = LocationWriteSerializer.Meta.fields + ("created_by",)
+
+
+class LocationUpdateSerializer(LocationWriteSerializer):
+    modified_by = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    modified_at = serializers.HiddenField(default=datetime.now())
+
+    class Meta(LocationWriteSerializer.Meta):
+        fields = LocationWriteSerializer.Meta.fields + ("modified_by", "modified_at")
 
 
 class ChoiceSerializer(serializers.ModelSerializer):
@@ -33,14 +65,13 @@ class StepSerializer(serializers.ModelSerializer):
         fields = ["id", "title", "description", "location", "choices"]
 
 
-class ScenarioSerializer(BaseModelSerializer):
-    author = UserSerializer(read_only=True)
+class ScenarioSerializer(BaseTrackedModelReadSerializer):
     root_step = StepSerializer()
+    created_by = UserSerializer()
 
-    class Meta(BaseModelSerializer.Meta):
+    class Meta(BaseTrackedModelReadSerializer.Meta):
         model = Scenario
-        fields = BaseModelSerializer.Meta.fields + (
-            "author",
+        fields = BaseTrackedModelReadSerializer.Meta.fields + (
             "root_step",
             "description",
             "title",
@@ -70,12 +101,12 @@ class ScenarioCreateSerializer(BaseModelSerializer):
     class Meta(BaseModelSerializer.Meta):
         model = Scenario
         fields = BaseModelSerializer.Meta.fields + (
-            "author",
+            "created_by",
             "steps",
             "description",
             "title",
         )
-        read_only_fields = BaseModelSerializer.Meta.read_only_fields + ("author",)
+        read_only_fields = BaseModelSerializer.Meta.read_only_fields + ("created_by",)
 
     def validate_steps(self, value):
         if len(value) < 1:

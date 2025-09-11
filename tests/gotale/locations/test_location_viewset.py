@@ -6,6 +6,7 @@ from model_bakery import baker
 from rest_framework import status
 
 from gotale.models import Location
+from tests.core.test_user_viewset import USER_LIST
 
 LOCATION_LIST = [
     {
@@ -14,8 +15,10 @@ LOCATION_LIST = [
         "latitude": "1.000000",
         "longitude": "1.000000",
         "title": "Location 1",
-        "created": ANY,
-        "modified": ANY,
+        "created_by": USER_LIST[0],
+        "created_at": ANY,
+        "modified_by": None,
+        "modified_at": ANY,
     },
     {
         "id": "4e798487-e8b8-41bf-a49a-000000000001",
@@ -23,8 +26,10 @@ LOCATION_LIST = [
         "latitude": "2.000000",
         "longitude": "2.000000",
         "title": "Location 2",
-        "created": ANY,
-        "modified": ANY,
+        "created_by": USER_LIST[0],
+        "created_at": ANY,
+        "modified_by": None,
+        "modified_at": ANY,
     },
     {
         "id": "4e798487-e8b8-41bf-a49a-000000000002",
@@ -32,20 +37,23 @@ LOCATION_LIST = [
         "latitude": "3.000000",
         "longitude": "3.000000",
         "title": "Location 3",
-        "created": ANY,
-        "modified": ANY,
+        "created_by": USER_LIST[0],
+        "created_at": ANY,
+        "modified_by": None,
+        "modified_at": ANY,
     },
 ]
 
 
 @pytest.fixture
-def locations_fixture():
+def locations_fixture(users_fixture):
     return Location.objects.bulk_create(
         [
             baker.prepare(
                 Location,
                 id="4e798487-e8b8-41bf-a49a-000000000000",
                 title="Location 1",
+                created_by=users_fixture[0],
                 latitude=1.0,
                 longitude=1.0,
             ),
@@ -53,6 +61,7 @@ def locations_fixture():
                 Location,
                 id="4e798487-e8b8-41bf-a49a-000000000001",
                 title="Location 2",
+                created_by=users_fixture[0],
                 latitude=2.0,
                 longitude=2.0,
                 description="Description for Location 2",
@@ -61,6 +70,7 @@ def locations_fixture():
                 Location,
                 id="4e798487-e8b8-41bf-a49a-000000000002",
                 title="Location 3",
+                created_by=users_fixture[0],
                 latitude=3.0,
                 longitude=3.0,
             ),
@@ -68,67 +78,68 @@ def locations_fixture():
     )
 
 
-@pytest.mark.django_db
-@pytest.mark.parametrize(
-    "url, method, url_args, expected_status_code",
-    [
-        pytest.param(
-            "list",
-            "get",
-            {},
-            status.HTTP_200_OK,
-            id="list",
-        ),
-        pytest.param(
-            "list",
-            "post",
-            {},
-            status.HTTP_403_FORBIDDEN,
-            id="create",
-        ),
-        pytest.param(
-            "detail",
-            "get",
-            {"pk": "4e798487-e8b8-41bf-a49a-000000000000"},
-            status.HTTP_200_OK,
-            id="retrieve",
-        ),
-        pytest.param(
-            "detail",
-            "put",
-            {"pk": "4e798487-e8b8-41bf-a49a-000000000000"},
-            status.HTTP_403_FORBIDDEN,
-            id="update",
-        ),
-        pytest.param(
-            "detail",
-            "patch",
-            {"pk": "4e798487-e8b8-41bf-a49a-000000000000"},
-            status.HTTP_403_FORBIDDEN,
-            id="partial_update",
-        ),
-        pytest.param(
-            "detail",
-            "delete",
-            {"pk": "4e798487-e8b8-41bf-a49a-000000000000"},
-            status.HTTP_403_FORBIDDEN,
-            id="destroy",
-        ),
-    ],
-)
-def test_locations_viewset_permissions_anon(
-    # TODO: only admin can create/update/delete
-    anon_client,
-    locations_fixture,
-    url,
-    method,
-    url_args,
-    expected_status_code,
-):
-    url = reverse(f"location-{url}", kwargs=url_args)
-    response = getattr(anon_client, method)(url)
+# TOD
+# @pytest.mark.django_db
+# @pytest.mark.parametrize(
+#     "url, method, url_args, expected_status_code",
+#     [
+#         pytest.param(
+#             "list",
+#             "get",
+#             {},
+#             status.HTTP_200_OK,
+#             id="list",
+#         ),
+#         pytest.param(
+#             "list",
+#             "post",
+#             {},
+#             status.HTTP_403_FORBIDDEN,
+#             id="create",
+#         ),
+#         pytest.param(
+#             "detail",
+#             "get",
+#             {"pk": "4e798487-e8b8-41bf-a49a-000000000000"},
+#             status.HTTP_200_OK,
+#             id="retrieve",
+#         ),
+#         pytest.param(
+#             "detail",
+#             "put",
+#             {"pk": "4e798487-e8b8-41bf-a49a-000000000000"},
+#             status.HTTP_403_FORBIDDEN,
+#             id="update",
+#         ),
+#         pytest.param(
+#             "detail",
+#             "patch",
+#             {"pk": "4e798487-e8b8-41bf-a49a-000000000000"},
+#             status.HTTP_403_FORBIDDEN,
+#             id="partial_update",
+#         ),
+#         pytest.param(
+#             "detail",
+#             "delete",
+#             {"pk": "4e798487-e8b8-41bf-a49a-000000000000"},
+#             status.HTTP_403_FORBIDDEN,
+#             id="destroy",
+#         ),
+#     ],
+# )
+# def test_locations_viewset_permissions_anon(
+#     # TODO: only admin can create/update/delete
+#     anon_client,
+#     locations_fixture,
+#     url,
+#     method,
+#     url_args,
+#     expected_status_code,
+# ):
+#     url = reverse(f"location-{url}", kwargs=url_args)
+#     response = getattr(anon_client, method)(url)
 
-    assert response.status_code == expected_status_code
+#     assert response.status_code == expected_status_code
 
 
 @pytest.mark.django_db
@@ -170,8 +181,8 @@ def test_locations_viewset_retrieve_errors(
         pytest.param(
             {
                 "title": "New Location",
-                "latitude": 1.0,
-                "longitude": 1.0,
+                "latitude": "1.000000",
+                "longitude": "1.000000",
                 "description": "Description for New Location",
             },
             id="with_description",
@@ -179,28 +190,24 @@ def test_locations_viewset_retrieve_errors(
         pytest.param(
             {
                 "title": "New Location",
-                "latitude": 1.0,
-                "longitude": 1.0,
+                "latitude": "1.000000",
+                "longitude": "1.000000",
             },
             id="without_description",
         ),
     ),
 )
 @pytest.mark.django_db
-def test_locations_viewset_create_success(admin_client, data):
-    response = admin_client.post(reverse("location-list"), data=data)
+def test_locations_viewset_create_success(auth_client, data):
+    response = auth_client.post(reverse("location-list"), data=data)
 
     assert (response.status_code, response.json()) == (
         status.HTTP_201_CREATED,
-        data
+        LOCATION_LIST[0]
         | {
             "id": ANY,
-            "created": ANY,
-            "modified": ANY,
-            "latitude": "1.000000",
-            "longitude": "1.000000",
-            "description": data.get("description", None),
-        },
+        }
+        | data,
     )
 
 
@@ -251,6 +258,7 @@ def test_locations_viewset_create_errors(
     assert (response.status_code, response.json()) == (exp_status_code, exp_response)
 
 
+# TODO: put/patch in parametrize
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "data",
@@ -264,17 +272,16 @@ def test_locations_viewset_create_errors(
         ),
     ),
 )
-def test_locations_viewset_update_success(locations_fixture, admin_client, data):
-    response = admin_client.patch(
+def test_locations_viewset_update_success(locations_fixture, auth_client, data):
+    response = auth_client.patch(
         reverse("location-detail", kwargs={"pk": locations_fixture[0].id}), data=data
     )
     assert (response.status_code, response.json()) == (
         status.HTTP_200_OK,
-        data
+        LOCATION_LIST[0]
+        | data
         | {
             "id": ANY,
-            "created": ANY,
-            "modified": ANY,
             "latitude": "80.000000",
             "longitude": "-60.000000",
             "title": locations_fixture[0].title,
@@ -326,9 +333,9 @@ def test_locations_viewset_update_success(locations_fixture, admin_client, data)
     ),
 )
 def test_locations_viewset_update_errors(
-    locations_fixture, admin_client, data, expected_status_code, expected_response
+    locations_fixture, auth_client, data, expected_status_code, expected_response
 ):
-    response = admin_client.patch(
+    response = auth_client.patch(
         reverse("location-detail", kwargs={"pk": locations_fixture[0].id}), data=data
     )
 

@@ -1,4 +1,3 @@
-import uuid
 from datetime import datetime
 from decimal import Decimal
 
@@ -6,14 +5,13 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django_extensions.db.models import (
-    TimeStampedModel,
     TitleDescriptionModel,
 )
 
-from core.models import BaseModel, User
+from core.models import BaseModel, BaseTrackedModel, User
 
 
-class Location(TitleDescriptionModel, BaseModel):
+class Location(TitleDescriptionModel, BaseTrackedModel):
     latitude = models.DecimalField(
         max_digits=9,
         decimal_places=6,
@@ -38,8 +36,7 @@ class Location(TitleDescriptionModel, BaseModel):
         unique_together = [("latitude", "longitude")]
 
 
-class Scenario(TitleDescriptionModel, BaseModel):
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="scenarios")
+class Scenario(TitleDescriptionModel, BaseTrackedModel):
     # Only few Steps are marked as root
     # TODO: rethink creation, because this should be non-nullable
     root_step = models.ForeignKey(
@@ -63,8 +60,7 @@ class Scenario(TitleDescriptionModel, BaseModel):
         return self.title
 
 
-class Step(TitleDescriptionModel):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+class Step(TitleDescriptionModel, BaseModel):
     scenario = models.ForeignKey(
         Scenario, on_delete=models.CASCADE, related_name="steps"
     )
@@ -89,10 +85,7 @@ class Step(TitleDescriptionModel):
         return f"{self.scenario.title} - {self.title}"
 
 
-class Choice(models.Model):
-    # What step the choice belongs to
-    # TODO: use base model
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+class Choice(BaseModel):
     step = models.ForeignKey(Step, on_delete=models.CASCADE, related_name="choices")
     text = models.CharField(max_length=50)
     next = models.ForeignKey(
@@ -129,6 +122,7 @@ class Game(BaseModel):
     )
     end = models.DateTimeField(null=True)
 
+    # TODO: make GameStatuc models.TextChoice
     @property
     def status(self) -> str:
         if self.current_step.choices.count() == 0:
@@ -153,7 +147,7 @@ class Game(BaseModel):
         self.save()
 
 
-class History(TimeStampedModel):
+class History(BaseTrackedModel):
     game = models.ForeignKey("Game", on_delete=models.CASCADE, related_name="decisions")
     choice = models.ForeignKey(Choice, on_delete=models.SET_NULL, null=True, blank=True)
     step = models.ForeignKey(
@@ -168,4 +162,4 @@ class History(TimeStampedModel):
         return f"History for {self.game}"
 
     class Meta:
-        ordering = ["-created"]
+        ordering = ["-created_at"]
