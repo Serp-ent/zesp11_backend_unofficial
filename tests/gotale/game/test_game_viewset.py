@@ -6,7 +6,7 @@ from django.urls import reverse
 from model_bakery import baker
 from rest_framework import status
 
-from gotale.models import Game
+from gotale.models import Game, GameStatus
 from tests.core.test_user_viewset import USER_LIST
 
 GAME_LIST = [
@@ -361,7 +361,7 @@ def test_game_viewset_current_step_get_errors(auth_client, game_ended_fixture):
         reverse("game-current-step", kwargs={"pk": game_ended_fixture.id})
     )
 
-    assert game_ended_fixture.status == "ended"
+    assert game_ended_fixture.status == GameStatus.ENDED
     assert (response.status_code, response.json()) == (
         status.HTTP_200_OK,
         {
@@ -393,7 +393,7 @@ def test_game_viewset_current_step_post_success(auth_client, games_fixture):
             "id": "01234567-89ab-aaaa-0123-123000000001",
         },
     )
-    assert Game.objects.get(id=games_fixture[0].id).status == "ended"
+    assert Game.objects.get(id=games_fixture[0].id).status == GameStatus.ENDED
 
 
 @pytest.mark.parametrize(

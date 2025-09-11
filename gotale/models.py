@@ -9,6 +9,7 @@ from django_extensions.db.models import (
 )
 
 from core.models import BaseModel, BaseTrackedModel, User
+from gotale.choices import GameStatus
 
 
 class Location(TitleDescriptionModel, BaseTrackedModel):
@@ -122,18 +123,17 @@ class Game(BaseModel):
     )
     end = models.DateTimeField(null=True)
 
-    # TODO: make GameStatuc models.TextChoice
     @property
-    def status(self) -> str:
+    def status(self) -> GameStatus:
         if self.current_step.choices.count() == 0:
-            return "ended"
-        return "running"
+            return GameStatus.ENDED
+        return GameStatus.RUNNING
 
     def __str__(self):
         return f"{self.scenario.title} played by {self.user.username}"
 
     def make_decision(self, choice):
-        if self.status == "ended":
+        if self.status == GameStatus.ENDED:
             raise ValidationError("Game is not active.")
 
         if choice.step != self.current_step:

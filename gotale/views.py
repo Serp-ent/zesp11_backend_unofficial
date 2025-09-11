@@ -2,8 +2,8 @@ from datetime import datetime
 
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from drf_rw_serializers import viewsets
-from rest_framework import generics, mixins, permissions, status
+from drf_rw_serializers import generics, mixins, viewsets
+from rest_framework import permissions, status
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -14,7 +14,7 @@ from core.serializers import (
     UserUpdateSerializer,
 )
 from gotale import permissions as gotalePermissions
-from gotale.models import Choice, Game, Location, Scenario
+from gotale.models import Choice, Game, GameStatus, Location, Scenario
 from gotale.serializers import (
     GameCreateSerializer,
     GameSerializer,
@@ -110,11 +110,9 @@ class GameViewsets(
     viewsets.GenericViewSet,
 ):
     queryset = Game.objects.all()
-    serializer_class = GameSerializer
-    # permission_classes = [gotalePermissions.isAuthenticatedOrAdmin]
-    serializers_by_action = {
-        "create": GameCreateSerializer,
-    }
+    read_serializer_class = GameSerializer
+    write_serializers_class = GameCreateSerializer
+    # TODO permission_classes = [gotalePermissions.isAuthenticatedOrAdmin]
 
     def get_serializer_class(self):
         return self.serializers_by_action.get(self.action, GameSerializer)
@@ -127,21 +125,9 @@ class GameViewsets(
 
         return game
 
-    def create(self, request, *args, **kwargs):
-        serializer_create = self.get_serializer(data=request.data)
-        serializer_create.is_valid(raise_exception=True)
-
-        self.perform_create(serializer_create)
-
-        instance = serializer_create.instance
-        return Response(
-            GameSerializer(instance, context=self.get_serializer_context()).data,
-            status=status.HTTP_201_CREATED,
-        )
-
     @action(
         detail=True,
-        methods=["GET", "POST"],
+        methods=("GET", "POST"),
         url_name="current-step",
         url_path="step",
         name="Current game step",
@@ -154,7 +140,7 @@ class GameViewsets(
             return Response(serializer.data)
 
         # POST METHDO
-        if game.status == "ended":
+        if game.status == GameStatus.ENDED:
             return Response(
                 {"error": "This game has already ended"},
                 status=status.HTTP_400_BAD_REQUEST,
