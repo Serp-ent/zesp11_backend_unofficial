@@ -115,7 +115,9 @@ class GameViewsets(
     # TODO permission_classes = [gotalePermissions.isAuthenticatedOrAdmin]
 
     def get_serializer_class(self):
-        return self.serializers_by_action.get(self.action, GameSerializer)
+        if self.action == "create":
+            return GameCreateSerializer
+        return GameSerializer
 
     def perform_create(self, serializer):
         """Auto-create first session on game creation"""
